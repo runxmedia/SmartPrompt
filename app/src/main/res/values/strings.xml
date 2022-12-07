@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SmartPrompt</string>
+    <string name="save">Save Script</string>
 </resources>
