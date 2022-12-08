@@ -2,24 +2,15 @@ package com.sunrun.smartprompt;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.ContentProviderClient;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.OpenableColumns;
-import android.util.Base64;
-import android.util.Log;
+
 import android.widget.EditText;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+
+import com.sunrun.smartprompt.model.Status;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -46,16 +37,17 @@ public class ControlActivity extends AppCompatActivity {
         }
         //Google docs returns a "content://" Uri
         else{
-            //TODO: Get String from the Uri Google Docs gives us
-            Uri uri = (Uri) intent.getExtras().get("android.intent.extra.STREAM");
-            ContentResolver resolver = getContentResolver();
+            //Try to extract data from uri content
             InputStream inputStream = null;
             try {
+                Uri uri = (Uri) intent.getExtras().get("android.intent.extra.STREAM");
+                ContentResolver resolver = getContentResolver();
                 inputStream = resolver.openInputStream(uri);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
             String text = convertStreamToString(inputStream);
+            Status.setScript(text);
             script_container.setText(text);
         }
 
@@ -67,26 +59,4 @@ public class ControlActivity extends AppCompatActivity {
     }
 
 
-    private void sendRequest(String url){
-        // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(this);
-
-        // Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
-                        int poop = 83;
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                int mm = 28;
-            }
-        });
-
-// Add the request to the RequestQueue.
-        queue.add(stringRequest);
-    }
 }

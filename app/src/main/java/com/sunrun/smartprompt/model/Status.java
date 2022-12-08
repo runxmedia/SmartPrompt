@@ -14,27 +14,27 @@ public class Status {
         instance.scroll_position = 0;
     }
 
-    public String getScript() {
+    public static String getScript() {
         return instance.script;
     }
 
-    public void setScript(String script) {
-        instance.script = script;
+    public static void setScript(String script) {
+        instance.script = new String(script);
     }
 
-    public int getFont_size() {
+    public static int getFont_size() {
         return instance.font_size;
     }
 
-    public void setFont_size(int font_size) {
+    public static void setFont_size(int font_size) {
         instance.font_size = font_size;
     }
 
-    public int getScroll_position() {
+    public static int getScroll_position() {
         return instance.scroll_position;
     }
 
-    public void setScroll_position(int scroll_position) {
+    public static void setScroll_position(int scroll_position) {
         instance.scroll_position = scroll_position;
     }
 }

@@ -37,6 +37,7 @@
         android:gravity="start|top"
         android:hint="Type or Paste Script"
         android:inputType="textMultiLine"
+        android:textColor="#000000"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btn_save" />
