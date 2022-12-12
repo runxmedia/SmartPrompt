@@ -25,7 +25,6 @@ public class ControlActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_control);
 
-
         script_container = findViewById(R.id.txt_script_entry);
         Intent intent = getIntent();
         String scriptText = "SD";

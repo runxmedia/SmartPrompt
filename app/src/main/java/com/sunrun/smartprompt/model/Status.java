@@ -9,10 +9,11 @@ public class Status {
     private int scroll_position;
 
     public Status() {
-        instance.script = null;
-        instance.font_size = 0;
-        instance.scroll_position = 0;
+        this.script = null;
+        this.font_size = 0;
+        this.scroll_position = 0;
     }
+
 
     public static String getScript() {
         return instance.script;
