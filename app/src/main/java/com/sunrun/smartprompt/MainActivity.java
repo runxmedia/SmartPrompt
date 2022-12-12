@@ -1,8 +1,11 @@
 package com.sunrun.smartprompt;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -30,5 +33,39 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        getPermission();
+    }
+
+    private void getPermission(){
+        // This array contains the list of permissions that we need to request
+        String[] permissions = new String[]{
+                Manifest.permission.BLUETOOTH_ADVERTISE,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.ACCESS_WIFI_STATE,
+                Manifest.permission.CHANGE_WIFI_STATE,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        };
+
+// Check if we have all the necessary permissions
+        if (!hasAllPermissions(permissions)) {
+            // Some of the necessary permissions are missing, so we need
+            // to request them from the user
+            requestPermissions(permissions, 1);
+        }
+
+    }
+
+    // This method checks if we have all the necessary permissions
+    private boolean hasAllPermissions(String[] permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
     }
 }
