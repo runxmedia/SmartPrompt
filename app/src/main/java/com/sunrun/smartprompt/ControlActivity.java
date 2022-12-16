@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.widget.EditText;
 
 
+import com.sunrun.smartprompt.com.NearbyCom;
 import com.sunrun.smartprompt.model.Status;
 
 import java.io.FileNotFoundException;
@@ -28,7 +29,7 @@ public class ControlActivity extends AppCompatActivity {
         script_container = findViewById(R.id.txt_script_entry);
         Intent intent = getIntent();
 
-        //Only extract Text if this came from a send
+        //Only extract Text if activity was started from "Send"
         boolean script_import;
         String action = intent.getAction();
         script_import = action != null && action.contains("action.SEND");
@@ -58,6 +59,9 @@ public class ControlActivity extends AppCompatActivity {
                 script_container.setText(text);
             }
         }
+
+        NearbyCom nearbyCom = new NearbyCom();
+        nearbyCom.startAdvertising(this);
     }
 
     private String convertStreamToString(InputStream is) {
