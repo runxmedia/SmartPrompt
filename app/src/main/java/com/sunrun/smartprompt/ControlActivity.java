@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -23,7 +24,6 @@ public class ControlActivity extends AppCompatActivity {
 
     TextView txt_script_container;
     ScrollView scrl_script_scoller;
-    ImageButton btn_auto_scroll;
     ImageButton btn_edit_script;
     ImageView btn_reverse;
     ImageView btn_forward;
@@ -149,7 +149,7 @@ public class ControlActivity extends AppCompatActivity {
         //Calculate Script Scale
         float script_width = scrl_script_scoller.getWidth();
         float script_height = scrl_script_scoller.getHeight();
-        float button_size = btn_auto_scroll.getHeight();
+        float button_size = btn_edit_script.getHeight();
         float scale = window_width / script_width;
         scrl_script_scoller.setScaleY(scale);
         scrl_script_scoller.setScaleX(scale);

@@ -1,6 +1,7 @@
 package com.sunrun.smartprompt.model;
 
 import android.os.Handler;
+import android.util.Log;
 import android.widget.ScrollView;
 
 public class AutoScroller {
@@ -41,9 +42,9 @@ public class AutoScroller {
         }
     };
     public void teleprompterStart(){
-        handler.postDelayed(controlRunnable, delay);
+        handler.postDelayed(teleprompterRunnable, delay);
     }
     public void teleprompterStop(){
-        handler.removeCallbacks(controlRunnable);
+        handler.removeCallbacks(teleprompterRunnable);
     }
 }
