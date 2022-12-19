@@ -11,8 +11,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import com.sunrun.smartprompt.com.NearbyCom;
-
 public class MainActivity extends AppCompatActivity {
 
     private Button btn_teleprompter;
@@ -32,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent();
-                intent.setClass(view.getContext(), ControlActivity.class);
+                intent.setClass(view.getContext(), ScriptEditActivity.class);
                 startActivity(intent);
             }
         });

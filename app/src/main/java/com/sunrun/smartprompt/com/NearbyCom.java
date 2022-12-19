@@ -25,29 +25,31 @@ import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.nearby.connection.Strategy;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedReader;
-import java.io.PipedWriter;
+import java.util.ArrayList;
+
 
 public class NearbyCom {
 
     ConnectionLifecycleCallback connectionCallback;
     ReceivePayloadCallback payloadCallback;
+    ArrayList <String> endpoints;
+    Context context;
 
 
 
-    public NearbyCom() {
+    public NearbyCom(Context context) {
        connectionCallback = null;
        payloadCallback = new ReceivePayloadCallback();
+       endpoints = new ArrayList<>();
+       this.context = context;
     }
 
-    public void startAdvertising(Context context) {
+    public void startAdvertising() {
+
+        endpoints.clear();
 
         connectionCallback = new ConnectionLifecycleCallback() {
             @Override
@@ -61,6 +63,7 @@ public class NearbyCom {
                 switch (result.getStatus().getStatusCode()) {
                     case ConnectionsStatusCodes.STATUS_OK:
                         // We're connected! Can now start sending and receiving data.
+                        endpoints.add(endpointId);
 //                        InputStream inputStream = new PipedInputStream();
 //                        Payload streamPayload = Payload.fromStream(inputStream);
                         break;
@@ -76,8 +79,8 @@ public class NearbyCom {
             }
 
             @Override
-            public void onDisconnected(@NonNull String s) {
-
+            public void onDisconnected(@NonNull String endpointId) {
+                endpoints.remove(endpointId);
             }
         };
 
@@ -103,7 +106,9 @@ public class NearbyCom {
                         });
     }
 
-    public void startDiscovery(Context context){
+    public void startDiscovery(){
+
+        endpoints.clear();
 
         connectionCallback = new ConnectionLifecycleCallback() {
             @Override
@@ -120,6 +125,8 @@ public class NearbyCom {
                 switch (result.getStatus().getStatusCode()) {
                     case ConnectionsStatusCodes.STATUS_OK:
                         // We're connected! Can now start sending and receiving data.
+                        endpoints.clear();
+                        endpoints.add(endpointId);
                         break;
                     case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                         // The connection was rejected by one or both sides.
@@ -158,8 +165,8 @@ public class NearbyCom {
             }
 
             @Override
-            public void onEndpointLost(@NonNull String s) {
-
+            public void onEndpointLost(@NonNull String endpointID) {
+                endpoints.remove(endpointID);
             }
         };
 
@@ -179,6 +186,20 @@ public class NearbyCom {
                         });
     }
 
+    public void stopDiscovery(){
+        Nearby.getConnectionsClient(context).stopDiscovery();
+    }
+
+    public void stopAdvertising(){
+        Nearby.getConnectionsClient(context).stopAdvertising();
+    }
+
+
+    public void closeAll(){
+        stopAdvertising();
+        stopDiscovery();
+        Log.d("Nearby", "ending nearby connections. Goodbye!");
+    }
 
     //Stream Payload Callback Class
     static class ReceivePayloadCallback extends PayloadCallback {

@@ -17,14 +17,15 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Scanner;
 
-public class ControlActivity extends AppCompatActivity {
+public class ScriptEditActivity extends AppCompatActivity {
 
     EditText script_container;
+    NearbyCom nearbyCom;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_control);
+        setContentView(R.layout.activity_script_edit);
 
         script_container = findViewById(R.id.txt_script_entry);
         Intent intent = getIntent();
@@ -60,8 +61,8 @@ public class ControlActivity extends AppCompatActivity {
             }
         }
 
-        NearbyCom nearbyCom = new NearbyCom();
-        nearbyCom.startAdvertising(this);
+        nearbyCom = new NearbyCom(this);
+        nearbyCom.startAdvertising();
     }
 
     private String convertStreamToString(InputStream is) {
@@ -69,5 +70,9 @@ public class ControlActivity extends AppCompatActivity {
         return scanner.hasNext() ? scanner.next() : "";
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        nearbyCom.closeAll();
+    }
 }
