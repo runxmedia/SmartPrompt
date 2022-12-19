@@ -4,14 +4,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.EditText;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.sunrun.smartprompt.com.NearbyCom;
+import com.sunrun.smartprompt.model.AutoScroller;
 
 public class PrompterActivity extends AppCompatActivity {
 
@@ -23,14 +23,19 @@ public class PrompterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_prompter);
         txt_script_container = findViewById(R.id.txt_script_container);
         scrl_script_scoller = findViewById(R.id.scrl_prompter_container);
         img_arrow = findViewById(R.id.img_arrow);
 
-
+        //Setup nearby connections
         NearbyCom nearbyCom = new NearbyCom(this);
         nearbyCom.startDiscovery();
+
+        //Start Autoscroll
+        AutoScroller autoScroller = new AutoScroller(scrl_script_scoller);
+        autoScroller.teleprompterStart();
     }
 
     @Override
@@ -68,4 +73,5 @@ public class PrompterActivity extends AppCompatActivity {
         scrl_script_scoller.setY(script_pos_y);
 
     }
+
 }

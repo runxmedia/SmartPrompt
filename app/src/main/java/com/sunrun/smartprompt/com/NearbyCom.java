@@ -5,6 +5,7 @@ import static com.google.android.gms.common.util.IOUtils.copyStream;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -24,10 +25,13 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.nearby.connection.Strategy;
+import com.sunrun.smartprompt.model.Status;
 
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.ArrayList;
 
 
@@ -37,7 +41,8 @@ public class NearbyCom {
     ReceivePayloadCallback payloadCallback;
     ArrayList <String> endpoints;
     Context context;
-
+    PipedInputStream inputStream;
+    PipedOutputStream outputStream;
 
 
     public NearbyCom(Context context) {
@@ -50,6 +55,12 @@ public class NearbyCom {
     public void startAdvertising() {
 
         endpoints.clear();
+        outputStream = new PipedOutputStream();
+        try {
+            inputStream = new PipedInputStream(outputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         connectionCallback = new ConnectionLifecycleCallback() {
             @Override
@@ -64,8 +75,7 @@ public class NearbyCom {
                     case ConnectionsStatusCodes.STATUS_OK:
                         // We're connected! Can now start sending and receiving data.
                         endpoints.add(endpointId);
-//                        InputStream inputStream = new PipedInputStream();
-//                        Payload streamPayload = Payload.fromStream(inputStream);
+                        Payload streamPayload = Payload.fromStream(inputStream);
                         break;
                     case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                         // The connection was rejected by one or both sides.
@@ -256,5 +266,25 @@ public class NearbyCom {
                 backgroundThreads.put(payload.getId(), backgroundThread);
             }
         }
+    }
+
+
+    //Background Thread to send datastream
+    final private Handler handler = new Handler();
+    final private int delay = 2; //milliseconds
+    private final Runnable controlRunnable = new Runnable() {
+        @Override
+        public void run() {
+            //TODO: Implement feeding data into the pipe
+            if (Status.getScroll_speed() != 0) {
+                handler.postDelayed(this, delay);
+            }
+        }
+    };
+    public void controlStart(){
+        handler.postDelayed(controlRunnable, delay);
+    }
+    public void controlStop(){
+        handler.removeCallbacks(controlRunnable);
     }
 }

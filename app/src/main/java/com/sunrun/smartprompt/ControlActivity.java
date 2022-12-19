@@ -5,12 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -18,11 +16,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.sunrun.smartprompt.com.NearbyCom;
-import com.sunrun.smartprompt.model.Scroller;
+import com.sunrun.smartprompt.model.AutoScroller;
 import com.sunrun.smartprompt.model.Status;
-
-import java.io.InputStream;
-import java.util.Scanner;
 
 public class ControlActivity extends AppCompatActivity {
 
@@ -34,7 +29,7 @@ public class ControlActivity extends AppCompatActivity {
     ImageView btn_forward;
     SeekBar seek_speed;
     NearbyCom nearbyCom;
-    Scroller scroller;
+    AutoScroller autoScroller;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +51,7 @@ public class ControlActivity extends AppCompatActivity {
         btn_forward = findViewById(R.id.btn_forward);
         btn_reverse = findViewById(R.id.btn_reverse);
         seek_speed = findViewById(R.id.seek_speed);
-        scroller = new Scroller(scrl_script_scoller);
+        autoScroller = new AutoScroller(scrl_script_scoller);
 
         //Setup speed bar
         seek_speed.setProgress(Status.getScroll_speed());
@@ -83,10 +78,10 @@ public class ControlActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent motionEvent) {
                 switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
-                        scroller.start();
+                        autoScroller.controlStart();
                         break;
                     case MotionEvent.ACTION_UP:
-                        scroller.stop();
+                        autoScroller.controlStop();
                         break;
                 }
                 return true;
@@ -98,11 +93,11 @@ public class ControlActivity extends AppCompatActivity {
                 switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
                         Status.setScroll_speed(Status.getScroll_speed()*-1);
-                        scroller.start();
+                        autoScroller.controlStart();
                         break;
                     case MotionEvent.ACTION_UP:
                         Status.setScroll_speed(Status.getScroll_speed()*-1);
-                        scroller.stop();
+                        autoScroller.controlStop();
                         break;
                 }
                 return true;
