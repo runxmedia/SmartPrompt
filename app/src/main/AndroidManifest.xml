@@ -24,6 +24,15 @@
         android:theme="@style/Theme.SmartPrompt"
         tools:targetApi="31">
         <activity
+            android:name=".ControlActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+        <activity
             android:name=".PrompterActivity"
             android:exported="false">
             <meta-data

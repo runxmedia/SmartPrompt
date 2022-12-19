@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 
@@ -20,7 +22,7 @@ import java.util.Scanner;
 public class ScriptEditActivity extends AppCompatActivity {
 
     EditText script_container;
-    NearbyCom nearbyCom;
+    Button btn_save;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,9 +30,19 @@ public class ScriptEditActivity extends AppCompatActivity {
         setContentView(R.layout.activity_script_edit);
 
         script_container = findViewById(R.id.txt_script_entry);
-        Intent intent = getIntent();
+        btn_save = findViewById(R.id.btn_save);
+        btn_save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent control_intent = new Intent();
+                control_intent.setClass(view.getContext(),ControlActivity.class);
+                control_intent.putExtra("script",script_container.getText().toString());
+                startActivity(control_intent);
+            }
+        });
 
         //Only extract Text if activity was started from "Send"
+        Intent intent = getIntent();
         boolean script_import;
         String action = intent.getAction();
         script_import = action != null && action.contains("action.SEND");
@@ -61,18 +73,12 @@ public class ScriptEditActivity extends AppCompatActivity {
             }
         }
 
-        nearbyCom = new NearbyCom(this);
-        nearbyCom.startAdvertising();
+
+
     }
 
     private String convertStreamToString(InputStream is) {
         Scanner scanner = new Scanner(is).useDelimiter("\\A");
         return scanner.hasNext() ? scanner.next() : "";
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        nearbyCom.closeAll();
     }
 }

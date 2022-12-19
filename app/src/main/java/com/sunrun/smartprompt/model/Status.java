@@ -7,11 +7,13 @@ public class Status {
     private String script;
     private int font_size;
     private int scroll_position;
+    private int scroll_speed;
 
     public Status() {
         this.script = null;
         this.font_size = 0;
         this.scroll_position = 0;
+        this.scroll_speed = 3;
     }
 
 
@@ -37,5 +39,13 @@ public class Status {
 
     public static void setScroll_position(int scroll_position) {
         instance.scroll_position = scroll_position;
+    }
+
+    public static int getScroll_speed() {
+        return instance.scroll_speed;
+    }
+
+    public static void setScroll_speed(int scroll_speed) {
+        instance.scroll_speed = scroll_speed;
     }
 }

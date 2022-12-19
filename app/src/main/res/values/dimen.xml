@@ -2,5 +2,5 @@
 <resources>
     <dimen name="script_view_width">1730dp</dimen>
     <dimen name="script_view_height">1080dp</dimen>
-    <dimen name="arrow_size">200dp</dimen>
+    <dimen name="arrow_size">150dp</dimen>
 </resources>

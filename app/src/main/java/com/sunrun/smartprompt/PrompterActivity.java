@@ -31,8 +31,6 @@ public class PrompterActivity extends AppCompatActivity {
 
         NearbyCom nearbyCom = new NearbyCom(this);
         nearbyCom.startDiscovery();
-
-
     }
 
     @Override
