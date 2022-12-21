@@ -1,6 +1,12 @@
 package com.sunrun.smartprompt.model;
 
-public class Status {
+import android.util.Log;
+
+import java.util.Observable;
+import java.util.Observer;
+import java.util.concurrent.ArrayBlockingQueue;
+
+public class Status extends Observable {
     
     private static final Status instance = new Status();
     
@@ -8,12 +14,14 @@ public class Status {
     private int font_size;
     private int scroll_position;
     private int scroll_speed;
+    private ArrayBlockingQueue<Integer> scrollPosQueue;
 
     public Status() {
         this.script = null;
         this.font_size = 0;
         this.scroll_position = 0;
         this.scroll_speed = 3;
+        this.scrollPosQueue = new ArrayBlockingQueue<>(60);
     }
 
 
@@ -23,6 +31,8 @@ public class Status {
 
     public static void setScript(String script) {
         instance.script = new String(script);
+        instance.setChanged();
+        instance.notifyObservers();
     }
 
     public static int getFont_size() {
@@ -48,4 +58,22 @@ public class Status {
     public static void setScroll_speed(int scroll_speed) {
         instance.scroll_speed = scroll_speed;
     }
+
+    public static Integer pollQueue(){
+        return instance.scrollPosQueue.poll();
+    }
+
+    public static boolean addToQueue(int i){
+        try {
+            return instance.scrollPosQueue.add(i);
+        }catch (IllegalStateException e){
+            Log.d("Queue", "Queue Full");
+            return false;
+        }
+    }
+
+    public static void putObserver(Observer o) {
+        instance.addObserver(o);
+    }
+
 }

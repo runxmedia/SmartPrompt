@@ -34,6 +34,7 @@ public class ScriptEditActivity extends AppCompatActivity {
         btn_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Status.setScript(script_container.getText().toString());
                 Intent control_intent = new Intent();
                 control_intent.setClass(view.getContext(),ControlActivity.class);
                 control_intent.putExtra("script",script_container.getText().toString());
@@ -68,7 +69,6 @@ public class ScriptEditActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 String text = convertStreamToString(inputStream);
-                Status.setScript(text);
                 script_container.setText(text);
             }
         }

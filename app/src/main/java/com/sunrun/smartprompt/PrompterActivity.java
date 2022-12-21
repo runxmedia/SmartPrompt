@@ -12,8 +12,12 @@ import android.widget.TextView;
 
 import com.sunrun.smartprompt.com.NearbyCom;
 import com.sunrun.smartprompt.model.AutoScroller;
+import com.sunrun.smartprompt.model.Status;
 
-public class PrompterActivity extends AppCompatActivity {
+import java.util.Observable;
+import java.util.Observer;
+
+public class PrompterActivity extends AppCompatActivity implements Observer {
 
     TextView txt_script_container;
     ScrollView scrl_script_scoller;
@@ -36,6 +40,9 @@ public class PrompterActivity extends AppCompatActivity {
         //Start Autoscroll
         AutoScroller autoScroller = new AutoScroller(scrl_script_scoller);
         autoScroller.teleprompterStart();
+
+        //Setup Observer
+        Status.putObserver(this);
     }
 
     @Override
@@ -74,4 +81,8 @@ public class PrompterActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void update(Observable observable, Object o) {
+        txt_script_container.setText(Status.getScript());
+    }
 }

@@ -3,6 +3,8 @@ package com.sunrun.smartprompt.com;
 
 import static com.google.android.gms.common.util.IOUtils.copyStream;
 
+import static java.lang.Math.min;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -31,42 +33,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 
 
-public class NearbyCom {
+public class NearbyCom { //Handles nearby communication on both control and teleprompter sides
 
     ConnectionLifecycleCallback connectionCallback;
     ReceivePayloadCallback payloadCallback;
-    ArrayList <String> endpoints;
+    String endpoint; //Discoverer Endpoint
+    ArrayList <RemotePrompter> remotePrompters;
     Context context;
-    PipedInputStream inputStream;
-    PipedOutputStream outputStream;
-
-
     public NearbyCom(Context context) {
        connectionCallback = null;
        payloadCallback = new ReceivePayloadCallback();
-       endpoints = new ArrayList<>();
+       remotePrompters = new ArrayList<>();
        this.context = context;
     }
 
     public void startAdvertising() {
 
-        endpoints.clear();
+        remotePrompters.clear();
 
-        //setup pipe streams
-        inputStream = new PipedInputStream();
-        outputStream = new PipedOutputStream();
-        try {
-            outputStream.connect(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         connectionCallback = new ConnectionLifecycleCallback() {
             @Override
@@ -82,12 +71,20 @@ public class NearbyCom {
                         // We're connected! Can now start sending and receiving data.
 
                         //Start datastream if this is the first connected client
-                        if(endpoints.size() == 0){
+                        RemotePrompter remotePrompter = new RemotePrompter(endpointId);
+                        if(remotePrompters.size() == 0){
                             startDataStream();
                         }
-                        endpoints.add(endpointId);
-                        Payload streamPayload = Payload.fromStream(inputStream);
-                        Nearby.getConnectionsClient(context).sendPayload(endpointId,streamPayload);
+                        remotePrompters.add(remotePrompter);
+
+
+                        //Send script and font size;
+                        sendScript(remotePrompter);
+
+
+                        //Stream Payload
+//                        Payload streamPayload = Payload.fromStream(remotePrompter.getInputStream());
+//                        Nearby.getConnectionsClient(context).sendPayload(endpointId,streamPayload);
                         break;
                     case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                         // The connection was rejected by one or both sides.
@@ -102,11 +99,17 @@ public class NearbyCom {
 
             @Override
             public void onDisconnected(@NonNull String endpointId) {
-                endpoints.remove(endpointId);
                 //Stop data stream if there are no connected clients
-                if(endpoints.size() == 0){
+                if(remotePrompters.size() == 1){
                     stopDataStream();
                 }
+                for(RemotePrompter prompter : remotePrompters){
+                    if(prompter.getEndpointID().equals(endpointId)){
+                        remotePrompters.remove(prompter);
+                        break;
+                    }
+                }
+
             }
         };
 
@@ -134,7 +137,6 @@ public class NearbyCom {
 
     public void startDiscovery(){
 
-        endpoints.clear();
 
         connectionCallback = new ConnectionLifecycleCallback() {
             @Override
@@ -151,8 +153,8 @@ public class NearbyCom {
                 switch (result.getStatus().getStatusCode()) {
                     case ConnectionsStatusCodes.STATUS_OK:
                         // We're connected! Can now start sending and receiving data.
-                        endpoints.clear();
-                        endpoints.add(endpointId);
+                        endpoint = endpointId;
+                        stopDiscovery();
                         break;
                     case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                         // The connection was rejected by one or both sides.
@@ -193,7 +195,7 @@ public class NearbyCom {
 
             @Override
             public void onEndpointLost(@NonNull String endpointID) {
-                endpoints.remove(endpointID);
+                endpoint = null;
             }
         };
 
@@ -253,15 +255,11 @@ public class NearbyCom {
                         new Thread() {
                             @Override
                             public void run() {
-                                //TODO: Time every part of this loop to see whre latency is coming from
 
                                 InputStream inputStream = payload.asStream().asInputStream();
                                 long lastRead = SystemClock.elapsedRealtime();
-                                ArrayList<Byte> scroll_position_raw = new ArrayList<>();
                                 int scrl_pos = 0;
                                 while (!Thread.interrupted()) {
-                                    long time_taken = SystemClock.elapsedRealtime() - lastRead;
-                                    Log.d("Receiver", "for took: " + time_taken);
                                     if ((SystemClock.elapsedRealtime() - lastRead) >= READ_STREAM_IN_BG_TIMEOUT) {
                                         Log.e("Receiver", "Read data from stream but timed out.");
                                         break;
@@ -270,17 +268,21 @@ public class NearbyCom {
                                     try {
                                         int availableBytes = inputStream.available();
                                         if (availableBytes > 4) {
+//                                            lastUpdate = SystemClock.elapsedRealtime();
                                             byte[] bytes = new byte[availableBytes];
-                                             if (inputStream.read(bytes) == availableBytes) {
+                                            boolean all_bytes_read = inputStream.read(bytes) == availableBytes;
+                                            if (all_bytes_read) {
                                                 lastRead = SystemClock.elapsedRealtime();
 
                                                 for (int i = 0; i < availableBytes; i++){
+
                                                     if(bytes[i] == -128 && bytes[i+1] == 0){
                                                         scrl_pos = ((bytes[i+1] & 0xFF) << 24) |
                                                                 ((bytes[i+2] & 0xFF) << 16) |
                                                                 ((bytes[i+3] & 0xFF) << 8) |
                                                                 ((bytes[i + 4] & 0xFF));
                                                         Status.setScroll_position(scrl_pos);
+//                                                        Status.addToQueue(scrl_pos);
                                                         i+=4;
                                                     }
                                                 }
@@ -296,25 +298,73 @@ public class NearbyCom {
                 backgroundThread.start();
                 backgroundThreads.put(payload.getId(), backgroundThread);
             }
+            else if(payload.getType() == Payload.Type.BYTES){
+                byte[] bytes = payload.asBytes();
+
+                /*Identify what kind of data we are receiving
+                * The First Byte is the identifier of the data
+                * 0 = scroll position data
+                * 1 = first page of the script
+                * 2 = subsequent pages of the script
+                * 3 = font size
+                 */
+                if (bytes != null) {
+                    switch (bytes[0]){
+                        case 0:
+                            int scroll_position;
+                            scroll_position = ((bytes[1] & 0xFF) << 24) |
+                                    ((bytes[2] & 0xFF) << 16) |
+                                    ((bytes[3] & 0xFF) << 8) |
+                                    ((bytes[4] & 0xFF));
+                            Status.setScroll_position(scroll_position);
+                            break;
+                        case 1:
+                            String new_script = new String(bytes, StandardCharsets.UTF_8);
+                            new_script = new_script.substring(1);
+                            Status.setScript(new_script);
+                            break;
+                        case 2:
+                            String script_addition = new String(bytes, StandardCharsets.UTF_8);
+                            script_addition = Status.getScript() + script_addition.substring(1);
+                            Status.setScript(script_addition);
+                            break;
+                        case 3:
+                            break;
+                        default:
+                            //Unknown Data
+                            break;
+                    }
+                }
+            }
         }
 
-        private byte[] truncate(byte[] array, int newLength) {
-            if (array.length < newLength) {
-                return array;
-            } else {
-                byte[] truncated = new byte[newLength];
-                System.arraycopy(array, 0, truncated, 0, newLength);
+    }
 
-                return truncated;
+    public void sendScript(RemotePrompter prompter){
+        int max_chunk_size = 3999;
+        byte[] complete_script = Status.getScript().getBytes(StandardCharsets.UTF_8);
+        int script_length = complete_script.length;
+        for (int i = 0; i < script_length; i+=max_chunk_size){
+            byte[] send_bytes = new byte[min(max_chunk_size,script_length - i)+1];
+            if(i == 0){//Signal that this is the first chunk of the script
+                send_bytes[0] = 1;
+            } else { //Signal that this is a follow-up chunk of the script
+                send_bytes[0] = 2;
             }
+
+            //copy script to be sent
+            System.arraycopy(complete_script,i,send_bytes,1,send_bytes.length-1);
+
+            //Send Script
+            Payload bytes_payload = Payload.fromBytes(send_bytes);
+            Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
         }
     }
 
 
     //Background Thread to send dataStream
     final private Handler handler = new Handler();
-    final private Handler inputHandler = new Handler();
-    final private int delay = 4; //milliseconds
+    final private int delay = 7; //milliseconds
     byte[] send_bytes = new byte[5];
     private final Runnable outputStreamRunnable = new Runnable() {
         @Override
@@ -322,10 +372,17 @@ public class NearbyCom {
             try {
                 System.arraycopy(ByteBuffer.allocate(4).putInt(Status.getScroll_position()).array(),
                         0,send_bytes,1,4);
-                send_bytes[0] = -128;
-                outputStream.write(send_bytes);
-                outputStream.flush();
-            } catch (IOException e) {
+                send_bytes[0] = 0;
+                for (RemotePrompter prompter : remotePrompters) {
+
+                    Payload bytes_payload = Payload.fromBytes(send_bytes);
+                    Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
+
+                    //Stream Payload
+//                    prompter.getOutputStream().write(send_bytes);
+//                    prompter.getOutputStream().flush();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             handler.postDelayed(this, delay);
@@ -340,17 +397,5 @@ public class NearbyCom {
 //        inputHandler.removeCallbacks(inputStreamRunnable);
     }
 
-    private final Runnable inputStreamRunnable = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                while(inputStream.available()>0){
-                    Log.d("Stream",Integer.toString(inputStream.read()));
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            inputHandler.postDelayed(this, delay);
-        }
-    };
+
 }

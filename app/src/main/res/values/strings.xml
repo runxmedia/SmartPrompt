@@ -4,18 +4,5 @@
     <string name="no_prompters">No Teleprompters Connected</string>
     <string name="one_prompter">One Teleprompter Connected</string>
     <string name="many_prompters"> Teleprompters Connected</string>
-    <string name="telelprompter_placeholder">Available January\n
-
-
-Room for rent in a beautiful, newly constructed home in American Fork. Conveniently located near I-15 and the FrontRunner station, this high-end home is perfect for a young professional looking for a comfortable and modern living space.
-
-The house will be shared with three other male roommates in their late 20s/early 30s. Utilities will be split evenly among roommates, and an EV charger and garage spot are available. Available rooms are large, and include walk in closets, and access to in-home laundry. All common areas will be furnished.
-
-Available Rooms as shown on floor plan:
-
-Bedroom 1 - $700
-Bedroom 2 - $750
-Bedroom 3 - $800
-
-🏳️‍🌈 Friendly. No pets or smoking.</string>
+    <string name="telelprompter_placeholder">Connecting to Controller</string>
 </resources>
