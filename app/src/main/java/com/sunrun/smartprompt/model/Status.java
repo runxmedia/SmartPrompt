@@ -11,17 +11,20 @@ public class Status extends Observable {
     private static final Status instance = new Status();
     
     private String script;
+    private final StringBuilder incoming_script; //Container for incoming script chunks
     private int font_size;
-    private int scroll_position;
+    private float scroll_position;
     private int scroll_speed;
-    private ArrayBlockingQueue<Integer> scrollPosQueue;
+    public enum ScriptState {INCOMING, COMPLETE} //Enumerator to store state of incoming scripts
+    private ScriptState scriptState;
 
     public Status() {
         this.script = null;
         this.font_size = 0;
         this.scroll_position = 0;
         this.scroll_speed = 3;
-        this.scrollPosQueue = new ArrayBlockingQueue<>(60);
+        this.incoming_script = new StringBuilder();
+        scriptState = ScriptState.COMPLETE;
     }
 
 
@@ -43,11 +46,11 @@ public class Status extends Observable {
         instance.font_size = font_size;
     }
 
-    public static int getScroll_position() {
+    public static float getScroll_position() {
         return instance.scroll_position;
     }
 
-    public static void setScroll_position(int scroll_position) {
+    public static void setScroll_position(float scroll_position) {
         instance.scroll_position = scroll_position;
     }
 
@@ -59,18 +62,29 @@ public class Status extends Observable {
         instance.scroll_speed = scroll_speed;
     }
 
-    public static Integer pollQueue(){
-        return instance.scrollPosQueue.poll();
+    public static ScriptState getScriptState() {
+        return instance.scriptState;
     }
 
-    public static boolean addToQueue(int i){
-        try {
-            return instance.scrollPosQueue.add(i);
-        }catch (IllegalStateException e){
-            Log.d("Queue", "Queue Full");
-            return false;
-        }
+    public static void startNewScript(String newScript){
+        instance.scriptState = ScriptState.INCOMING;
+        instance.setChanged();
+        instance.notifyObservers();
+        instance.incoming_script.delete(0,instance.incoming_script.length());
+        instance.incoming_script.append(newScript);
     }
+
+    public static void appendToScript(String newscript){
+        instance.incoming_script.append(newscript);
+    }
+
+    public static void completeScript(){
+        instance.script = instance.incoming_script.toString();
+        instance.scriptState = ScriptState.COMPLETE;
+        instance.setChanged();
+        instance.notifyObservers();
+    }
+
 
     public static void putObserver(Observer o) {
         instance.addObserver(o);

@@ -23,13 +23,14 @@ import com.sunrun.smartprompt.model.Status;
 public class ControlActivity extends AppCompatActivity {
 
     TextView txt_script_container;
-    ScrollView scrl_script_scoller;
+    ScrollView scrl_script_scroller;
     ImageButton btn_edit_script;
     ImageView btn_reverse;
     ImageView btn_forward;
     SeekBar seek_speed;
     NearbyCom nearbyCom;
     AutoScroller autoScroller;
+    int max_scroll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,12 +47,12 @@ public class ControlActivity extends AppCompatActivity {
     @SuppressLint("ClickableViewAccessibility")
     private void setupUI(){
         txt_script_container = findViewById(R.id.txt_script_container);
-        scrl_script_scoller = findViewById(R.id.scrl_prompter_container);
+        scrl_script_scroller = findViewById(R.id.scrl_prompter_container);
         btn_edit_script = findViewById(R.id.btn_edit_script);
         btn_forward = findViewById(R.id.btn_forward);
         btn_reverse = findViewById(R.id.btn_reverse);
         seek_speed = findViewById(R.id.seek_speed);
-        autoScroller = new AutoScroller(scrl_script_scoller);
+        autoScroller = new AutoScroller(scrl_script_scroller);
 
         //Setup speed bar
         seek_speed.setProgress(Status.getScroll_speed());
@@ -105,11 +106,11 @@ public class ControlActivity extends AppCompatActivity {
         });
 
         //Setup Scroll Position Updates
-        scrl_script_scoller.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+        scrl_script_scroller.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
             @Override
-            public void onScrollChanged() {
-                int scrollY = scrl_script_scoller.getScrollY(); // For ScrollView
-                Status.setScroll_position(scrollY);
+            public void onScrollChanged() { // Set Scroll position as percentage
+                float scrollY = scrl_script_scroller.getScrollY();
+                Status.setScroll_position(scrollY/max_scroll);
             }
         });
     }
@@ -123,7 +124,7 @@ public class ControlActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        ViewTreeObserver treeObserver = scrl_script_scoller.getViewTreeObserver();
+        ViewTreeObserver treeObserver = scrl_script_scroller.getViewTreeObserver();
         treeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -135,6 +136,9 @@ public class ControlActivity extends AppCompatActivity {
     private void updateScript(String script){
         if(script != null){
             txt_script_container.setText(script);
+            if(nearbyCom != null) {
+                nearbyCom.updateScript();
+            }
         }
     }
 
@@ -144,21 +148,22 @@ public class ControlActivity extends AppCompatActivity {
         //Get Screen dimensions
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
         float window_width = displayMetrics.widthPixels;
-        float window_height = displayMetrics.heightPixels;
 
         //Calculate Script Scale
-        float script_width = scrl_script_scoller.getWidth();
-        float script_height = scrl_script_scoller.getHeight();
+        float script_width = scrl_script_scroller.getWidth();
+        float script_height = scrl_script_scroller.getHeight();
         float button_size = btn_edit_script.getHeight();
         float scale = window_width / script_width;
-        scrl_script_scoller.setScaleY(scale);
-        scrl_script_scoller.setScaleX(scale);
+        scrl_script_scroller.setScaleY(scale);
+        scrl_script_scroller.setScaleX(scale);
 
         //Auto Position Script
         float script_pos_x = ((script_width - (script_width * scale))/2)*-1;
         float script_pos_y = (((script_height - (script_height * scale))/2)-button_size) * -1;
-        scrl_script_scoller.setX(script_pos_x);
-        scrl_script_scoller.setY(script_pos_y);
+        scrl_script_scroller.setX(script_pos_x);
+        scrl_script_scroller.setY(script_pos_y);
+
+        max_scroll = (scrl_script_scroller.getChildAt(0).getHeight()) - scrl_script_scroller.getHeight();
 
     }
 

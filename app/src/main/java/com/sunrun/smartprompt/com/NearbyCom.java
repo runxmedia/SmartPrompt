@@ -31,8 +31,6 @@ import com.sunrun.smartprompt.model.Status;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -306,29 +304,29 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                 * 0 = scroll position data
                 * 1 = first page of the script
                 * 2 = subsequent pages of the script
-                * 3 = font size
+                * 3 = end of script
+                * 4 = Font Size
                  */
                 if (bytes != null) {
                     switch (bytes[0]){
                         case 0:
-                            int scroll_position;
-                            scroll_position = ((bytes[1] & 0xFF) << 24) |
-                                    ((bytes[2] & 0xFF) << 16) |
-                                    ((bytes[3] & 0xFF) << 8) |
-                                    ((bytes[4] & 0xFF));
+                            int intBits = bytes[1] << 24 | (bytes[2] & 0xFF) << 16 |
+                                    (bytes[3] & 0xFF) << 8 | (bytes[4] & 0xFF);
+                            float scroll_position = Float.intBitsToFloat(intBits);
                             Status.setScroll_position(scroll_position);
                             break;
                         case 1:
                             String new_script = new String(bytes, StandardCharsets.UTF_8);
                             new_script = new_script.substring(1);
-                            Status.setScript(new_script);
+                            Status.startNewScript(new_script);
                             break;
                         case 2:
                             String script_addition = new String(bytes, StandardCharsets.UTF_8);
                             script_addition = Status.getScript() + script_addition.substring(1);
-                            Status.setScript(script_addition);
+                            Status.appendToScript(script_addition);
                             break;
                         case 3:
+                            Status.completeScript();
                             break;
                         default:
                             //Unknown Data
@@ -338,6 +336,12 @@ public class NearbyCom { //Handles nearby communication on both control and tele
             }
         }
 
+    }
+
+    public void updateScript(){
+        for (RemotePrompter prompter : remotePrompters){
+            sendScript(prompter);
+        }
     }
 
     public void sendScript(RemotePrompter prompter){
@@ -359,6 +363,17 @@ public class NearbyCom { //Handles nearby communication on both control and tele
             Payload bytes_payload = Payload.fromBytes(send_bytes);
             Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
         }
+        //Send end of script signal
+        byte[] send_bytes = new byte[1];
+        send_bytes[0] = 3;
+        Payload bytes_payload = Payload.fromBytes(send_bytes);
+        Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
+    }
+
+    public static byte[] floatToByteArray(float value) {
+        int intBits =  Float.floatToIntBits(value);
+        return new byte[] {
+                (byte) (intBits >> 24), (byte) (intBits >> 16), (byte) (intBits >> 8), (byte) (intBits) };
     }
 
 
@@ -370,7 +385,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
         @Override
         public void run() {
             try {
-                System.arraycopy(ByteBuffer.allocate(4).putInt(Status.getScroll_position()).array(),
+                System.arraycopy(floatToByteArray(Status.getScroll_position()),
                         0,send_bytes,1,4);
                 send_bytes[0] = 0;
                 for (RemotePrompter prompter : remotePrompters) {

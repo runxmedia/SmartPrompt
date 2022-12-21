@@ -21,7 +21,7 @@
             android:fontFamily="monospace"
             android:text="@string/telelprompter_placeholder"
             android:textColor="#FFFFFF"
-            android:textSize="96sp" />
+            android:textSize="96dp" />
     </ScrollView>
 
     <ImageView
