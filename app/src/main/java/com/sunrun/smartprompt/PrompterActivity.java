@@ -2,12 +2,15 @@ package com.sunrun.smartprompt;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -24,6 +27,7 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
     TextView txt_script_container;
     ScrollView scrl_script_scroller;
     ImageView img_arrow;
+    ImageView img_connection_status;
     AutoScroller autoScroller;
 
 
@@ -34,6 +38,7 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
         setContentView(R.layout.activity_prompter);
         txt_script_container = findViewById(R.id.txt_script_container);
         scrl_script_scroller = findViewById(R.id.scrl_prompter_container);
+        img_connection_status = findViewById(R.id.img_connection_status);
         img_arrow = findViewById(R.id.img_arrow);
 
         //Setup nearby connections
@@ -47,12 +52,6 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
         autoScroller = new AutoScroller(scrl_script_scroller);
         autoScroller.teleprompterStart();
 
-        img_arrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                autoScroller.calculateMax();
-            }
-        });
     }
 
     @Override
@@ -90,16 +89,26 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
 
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     @Override
     public void update(Observable observable, Object o) {
-        if(Status.getScriptState() == Status.PrompterState.INCOMING){
+        Status.PrompterState state = Status.getPrompterState();
+        if(state == Status.PrompterState.INCOMING){
             txt_script_container.setText(R.string.incoming_script);
             Log.d("script", "Incoming");
         }
-        else {
+        else if(state == Status.PrompterState.COMPLETE){
             Log.d("script", "Complete");
             txt_script_container.setText(Status.getScript());
             autoScroller.calculateMax();
+        }else if(state == Status.PrompterState.CONNECTED){
+            img_connection_status.setImageDrawable(getDrawable(R.drawable.connected));
+            img_connection_status.setAlpha(1.0f);
+            Animation animation = AnimationUtils.loadAnimation(this,R.anim.delayed_fade_out);
+            img_connection_status.startAnimation(animation);
+        } else if (state == Status.PrompterState.DISCONNECTED){
+            img_connection_status.setImageDrawable(getDrawable(R.drawable.reconnecting));
+            img_connection_status.setAlpha(1.0f);
         }
     }
 }

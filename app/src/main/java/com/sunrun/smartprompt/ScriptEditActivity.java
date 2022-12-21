@@ -39,16 +39,17 @@ public class ScriptEditActivity extends AppCompatActivity {
                 control_intent.setClass(view.getContext(),ControlActivity.class);
                 control_intent.putExtra("script",script_container.getText().toString());
                 startActivity(control_intent);
+                finish();
             }
         });
 
-        //Only extract Text if activity was started from "Send"
+
         Intent intent = getIntent();
         boolean script_import;
         String action = intent.getAction();
         script_import = action != null && action.contains("action.SEND");
 
-        if(script_import) {
+        if(script_import) {//Only extract via uri if activity was started from "Send"
 
             String scriptText;
             scriptText = intent.getStringExtra(Intent.EXTRA_TEXT);
@@ -70,6 +71,11 @@ public class ScriptEditActivity extends AppCompatActivity {
                 }
                 String text = convertStreamToString(inputStream);
                 script_container.setText(text);
+            }
+        }else{
+            String script = intent.getStringExtra("script");
+            if(script != null){
+                script_container.setText(script);
             }
         }
 

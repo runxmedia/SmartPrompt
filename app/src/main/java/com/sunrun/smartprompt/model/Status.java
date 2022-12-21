@@ -12,7 +12,8 @@ public class Status extends Observable {
     private int font_size;
     private float scroll_position;
     private int scroll_speed;
-    public enum PrompterState {INCOMING, COMPLETE, DISCONNECTED} //Enumerator to store state of prompter
+    public enum PrompterState {INCOMING, COMPLETE, CONNECTED, DISCONNECTED} //Enumerator to store state of prompter
+    private int control_clients; //Holds number of clients in controller
     private PrompterState prompterState;
 
     public Status() {
@@ -20,6 +21,7 @@ public class Status extends Observable {
         this.font_size = 0;
         this.scroll_position = 0;
         this.scroll_speed = 3;
+        this.control_clients = 0;
         this.incoming_script = new StringBuilder();
         prompterState = PrompterState.COMPLETE;
     }
@@ -59,7 +61,7 @@ public class Status extends Observable {
         instance.scroll_speed = scroll_speed;
     }
 
-    public static PrompterState getScriptState() {
+    public static PrompterState getPrompterState() {
         return instance.prompterState;
     }
 
@@ -69,7 +71,6 @@ public class Status extends Observable {
         instance.notifyObservers();
         instance.incoming_script.setLength(0);
         instance.incoming_script.append(newScript);
-        int what = 0;
     }
 
     public static void appendToScript(String newscript){
@@ -83,8 +84,24 @@ public class Status extends Observable {
         instance.notifyObservers();
     }
 
+    public static void notifyConnected(){
+        instance.prompterState = PrompterState.CONNECTED;
+        instance.setChanged();
+        instance.notifyObservers();
+    }
+
     public static void notifyDisconnected(){
         instance.prompterState = PrompterState.DISCONNECTED;
+        instance.setChanged();
+        instance.notifyObservers();
+    }
+
+    public static int getControl_clients() {
+        return instance.control_clients;
+    }
+
+    public static void setControl_clients(int control_clients) {
+        instance.control_clients = control_clients;
         instance.setChanged();
         instance.notifyObservers();
     }

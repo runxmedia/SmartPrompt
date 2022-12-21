@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -20,9 +21,13 @@ import com.sunrun.smartprompt.com.NearbyCom;
 import com.sunrun.smartprompt.model.AutoScroller;
 import com.sunrun.smartprompt.model.Status;
 
-public class ControlActivity extends AppCompatActivity {
+import java.util.Observable;
+import java.util.Observer;
+
+public class ControlActivity extends AppCompatActivity implements Observer {
 
     TextView txt_script_container;
+    TextView txt_num_clients;
     ScrollView scrl_script_scroller;
     ImageButton btn_edit_script;
     ImageView btn_reverse;
@@ -42,11 +47,15 @@ public class ControlActivity extends AppCompatActivity {
         //Start advertising
         nearbyCom = new NearbyCom(this);
         nearbyCom.startAdvertising();
+
+        //Setup Observer
+        Status.putObserver(this);
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private void setupUI(){
         txt_script_container = findViewById(R.id.txt_script_container);
+        txt_num_clients = findViewById(R.id.txt_num_connections);
         scrl_script_scroller = findViewById(R.id.scrl_prompter_container);
         btn_edit_script = findViewById(R.id.btn_edit_script);
         btn_forward = findViewById(R.id.btn_forward);
@@ -70,6 +79,16 @@ public class ControlActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
+            }
+        });
+
+        btn_edit_script.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClass(view.getContext(), ScriptEditActivity.class);
+                intent.putExtra("script", Status.getScript());
+                startActivity(intent);
             }
         });
 
@@ -133,6 +152,25 @@ public class ControlActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void update(Observable observable, Object o) {
+        int clients = Status.getControl_clients();
+        switch (clients){
+            case 0:
+                txt_num_clients.setText(R.string.no_prompters);
+                break;
+            case 1:
+                txt_num_clients.setText(R.string.one_prompter);
+                break;
+            case 2:
+                String client_string = clients + getResources().getString(R.string.many_prompters);
+                txt_num_clients.setText(client_string);
+                break;
+            default:
+                break;
+        }
+    }
+
     private void updateScript(String script){
         if(script != null){
             txt_script_container.setText(script);
@@ -172,4 +210,5 @@ public class ControlActivity extends AppCompatActivity {
         super.onDestroy();
         nearbyCom.closeAll();
     }
+
 }

@@ -79,10 +79,10 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                         //Send script and font size;
                         sendScript(remotePrompter);
 
+                        //Notify of new client
+                        Status.setControl_clients(remotePrompters.size());
 
-                        //Stream Payload
-//                        Payload streamPayload = Payload.fromStream(remotePrompter.getInputStream());
-//                        Nearby.getConnectionsClient(context).sendPayload(endpointId,streamPayload);
+
                         break;
                     case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                         // The connection was rejected by one or both sides.
@@ -107,7 +107,8 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                         break;
                     }
                 }
-
+                //Notify of new client
+                Status.setControl_clients(remotePrompters.size());
             }
         };
 
@@ -153,6 +154,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                         // We're connected! Can now start sending and receiving data.
                         endpoint = endpointId;
                         stopDiscovery();
+                        Status.notifyConnected();
                         break;
                     case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                         // The connection was rejected by one or both sides.
@@ -169,7 +171,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
             public void onDisconnected(@NonNull String s) {
                 endpoint = null;
                 Status.notifyDisconnected();
-                stopDiscovery();
+                startDiscovery();
             }
         };
 

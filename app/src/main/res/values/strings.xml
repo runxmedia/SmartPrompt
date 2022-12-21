@@ -3,7 +3,7 @@
     <string name="save">Save Script</string>
     <string name="no_prompters">No Teleprompters Connected</string>
     <string name="one_prompter">One Teleprompter Connected</string>
-    <string name="many_prompters"> Teleprompters Connected</string>
+    <string name="many_prompters">\ Teleprompters Connected</string>
     <string name="telelprompter_placeholder">Connecting to Controller</string>
     <string name="incoming_script">Downloading Script</string>
 </resources>
