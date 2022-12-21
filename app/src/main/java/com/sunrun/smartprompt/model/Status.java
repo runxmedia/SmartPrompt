@@ -1,10 +1,7 @@
 package com.sunrun.smartprompt.model;
 
-import android.util.Log;
-
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class Status extends Observable {
     
@@ -15,8 +12,8 @@ public class Status extends Observable {
     private int font_size;
     private float scroll_position;
     private int scroll_speed;
-    public enum ScriptState {INCOMING, COMPLETE} //Enumerator to store state of incoming scripts
-    private ScriptState scriptState;
+    public enum PrompterState {INCOMING, COMPLETE, DISCONNECTED} //Enumerator to store state of prompter
+    private PrompterState prompterState;
 
     public Status() {
         this.script = null;
@@ -24,7 +21,7 @@ public class Status extends Observable {
         this.scroll_position = 0;
         this.scroll_speed = 3;
         this.incoming_script = new StringBuilder();
-        scriptState = ScriptState.COMPLETE;
+        prompterState = PrompterState.COMPLETE;
     }
 
 
@@ -62,16 +59,17 @@ public class Status extends Observable {
         instance.scroll_speed = scroll_speed;
     }
 
-    public static ScriptState getScriptState() {
-        return instance.scriptState;
+    public static PrompterState getScriptState() {
+        return instance.prompterState;
     }
 
     public static void startNewScript(String newScript){
-        instance.scriptState = ScriptState.INCOMING;
+        instance.prompterState = PrompterState.INCOMING;
         instance.setChanged();
         instance.notifyObservers();
-        instance.incoming_script.delete(0,instance.incoming_script.length());
+        instance.incoming_script.setLength(0);
         instance.incoming_script.append(newScript);
+        int what = 0;
     }
 
     public static void appendToScript(String newscript){
@@ -80,11 +78,16 @@ public class Status extends Observable {
 
     public static void completeScript(){
         instance.script = instance.incoming_script.toString();
-        instance.scriptState = ScriptState.COMPLETE;
+        instance.prompterState = PrompterState.COMPLETE;
         instance.setChanged();
         instance.notifyObservers();
     }
 
+    public static void notifyDisconnected(){
+        instance.prompterState = PrompterState.DISCONNECTED;
+        instance.setChanged();
+        instance.notifyObservers();
+    }
 
     public static void putObserver(Observer o) {
         instance.addObserver(o);

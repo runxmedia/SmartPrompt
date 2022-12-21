@@ -92,7 +92,7 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        if(Status.getScriptState() == Status.ScriptState.INCOMING){
+        if(Status.getScriptState() == Status.PrompterState.INCOMING){
             txt_script_container.setText(R.string.incoming_script);
             Log.d("script", "Incoming");
         }

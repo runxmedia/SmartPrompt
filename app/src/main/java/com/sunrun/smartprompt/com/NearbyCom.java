@@ -167,7 +167,9 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
             @Override
             public void onDisconnected(@NonNull String s) {
-
+                endpoint = null;
+                Status.notifyDisconnected();
+                stopDiscovery();
             }
         };
 
@@ -322,7 +324,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                             break;
                         case 2:
                             String script_addition = new String(bytes, StandardCharsets.UTF_8);
-                            script_addition = Status.getScript() + script_addition.substring(1);
+                            script_addition = script_addition.substring(1);
                             Status.appendToScript(script_addition);
                             break;
                         case 3:
