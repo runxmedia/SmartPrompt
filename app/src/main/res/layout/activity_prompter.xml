@@ -26,21 +26,20 @@
     </ScrollView>
 
     <ImageView
-        android:id="@+id/img_arrow"
+        android:id="@+id/img_pointer_arrow"
         android:layout_width="@dimen/arrow_size"
         android:layout_height="@dimen/arrow_size"
         android:layout_marginTop="80dp"
-        android:src="@android:drawable/ic_media_play"
+        android:src="@drawable/position_arrow"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/arrow" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <ImageView
         android:id="@+id/img_connection_status"
         android:layout_width="@dimen/arrow_size"
         android:layout_height="200dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/img_arrow"
+        app:layout_constraintTop_toBottomOf="@+id/img_pointer_arrow"
         app:srcCompat="@drawable/reconnecting" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

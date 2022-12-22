@@ -6,16 +6,13 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -47,7 +44,7 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
         txt_script_container = findViewById(R.id.txt_script_container);
         scrl_script_scroller = findViewById(R.id.scrl_prompter_container);
         img_connection_status = findViewById(R.id.img_connection_status);
-        img_arrow = findViewById(R.id.img_arrow);
+        img_arrow = findViewById(R.id.img_pointer_arrow);
 
         //Setup nearby connections
         NearbyCom nearbyCom = new NearbyCom(this);
