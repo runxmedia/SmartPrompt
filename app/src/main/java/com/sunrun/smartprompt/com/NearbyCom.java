@@ -82,8 +82,6 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
                         //Notify of new client
                         Status.setControl_clients(remotePrompters.size());
-
-
                         break;
                     case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                         // The connection was rejected by one or both sides.

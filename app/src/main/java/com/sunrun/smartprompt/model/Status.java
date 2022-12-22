@@ -1,5 +1,7 @@
 package com.sunrun.smartprompt.model;
 
+import android.util.Log;
+
 import java.util.Observable;
 import java.util.Observer;
 

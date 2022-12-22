@@ -192,11 +192,9 @@ public class ControlActivity extends AppCompatActivity implements Observer {
             case 1:
                 txt_num_clients.setText(R.string.one_prompter);
                 break;
-            case 2:
+            default:
                 String client_string = clients + getResources().getString(R.string.many_prompters);
                 txt_num_clients.setText(client_string);
-                break;
-            default:
                 break;
         }
     }
