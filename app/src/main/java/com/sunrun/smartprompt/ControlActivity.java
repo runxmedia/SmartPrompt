@@ -7,10 +7,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -33,6 +33,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
     ImageView btn_reverse;
     ImageView btn_forward;
     SeekBar seek_speed;
+    SeekBar seek_font_size;
     NearbyCom nearbyCom;
     AutoScroller autoScroller;
     int max_scroll;
@@ -61,6 +62,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
         btn_forward = findViewById(R.id.btn_forward);
         btn_reverse = findViewById(R.id.btn_reverse);
         seek_speed = findViewById(R.id.seek_speed);
+        seek_font_size = findViewById(R.id.seek_font_size);
         autoScroller = new AutoScroller(scrl_script_scroller);
 
         //Setup speed bar
@@ -82,6 +84,33 @@ public class ControlActivity extends AppCompatActivity implements Observer {
             }
         });
 
+        //Set Correct Font Size
+        txt_script_container.setTextSize(TypedValue.COMPLEX_UNIT_DIP, Status.getFont_size());
+
+        seek_font_size.setProgress((int)Status.getFont_size());
+        seek_font_size.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                txt_script_container.setTextSize(TypedValue.COMPLEX_UNIT_DIP,i);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Status.setFont_size(seek_font_size.getProgress());
+                max_scroll = (scrl_script_scroller.getChildAt(0).getHeight()) - scrl_script_scroller.getHeight();
+                float scrollY = scrl_script_scroller.getScrollY();
+                Status.setScroll_position(scrollY/max_scroll);
+                nearbyCom.updateFontSize();
+            }
+        });
+
+
         btn_edit_script.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -99,6 +128,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
                 switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
                         autoScroller.controlStart();
+                        Log.d("size", "satus: " + Status.getFont_size() + " seekbar: " + seek_font_size.getProgress());
                         break;
                     case MotionEvent.ACTION_UP:
                         autoScroller.controlStop();

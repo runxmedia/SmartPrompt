@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/wallpaper" />
+        app:srcCompat="@drawable/wallpaper_control" />
 
     <ScrollView
         android:id="@+id/scrl_prompter_container"
@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="monospace"
             android:text="@string/telelprompter_placeholder"
-            android:textColor="#000000"
+            android:textColor="#FFFFFF"
             android:textSize="96dp" />
     </ScrollView>
 
@@ -42,15 +42,28 @@
         android:max="20"
         android:min="1"
         android:progress="3"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btn_edit_script"
+        app:layout_constraintEnd_toStartOf="@+id/imageView5"
+        app:layout_constraintStart_toEndOf="@+id/imageView4"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <SeekBar
+        android:id="@+id/seek_font_size"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:max="200"
+        android:min="50"
+        android:progress="100"
+        app:layout_constraintEnd_toStartOf="@+id/imageView7"
+        app:layout_constraintStart_toEndOf="@+id/imageView6"
+        app:layout_constraintTop_toBottomOf="@+id/seek_speed" />
 
     <ImageButton
         android:id="@+id/btn_edit_script"
-        android:layout_width="150dp"
-        android:layout_height="50dp"
-        android:src="@android:drawable/ic_menu_edit"
+        android:layout_width="130dp"
+        android:layout_height="100dp"
+        android:background="#00FFFFFF"
+        android:scaleType="fitCenter"
+        android:src="@drawable/edit"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -72,6 +85,14 @@
         app:layout_constraintEnd_toStartOf="@+id/btn_forward"
         app:layout_constraintStart_toStartOf="parent"/>
 
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        app:layout_constraintStart_toEndOf="@+id/btn_edit_script"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/turtle" />
+
     <TextView
         android:id="@+id/txt_num_connections"
         android:layout_width="wrap_content"
@@ -82,5 +103,29 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/rabbit" />
+
+    <ImageView
+        android:id="@+id/imageView6"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        app:layout_constraintStart_toEndOf="@+id/btn_edit_script"
+        app:layout_constraintTop_toBottomOf="@+id/imageView4"
+        app:srcCompat="@drawable/small_a" />
+
+    <ImageView
+        android:id="@+id/imageView7"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView5"
+        app:srcCompat="@drawable/big_a" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

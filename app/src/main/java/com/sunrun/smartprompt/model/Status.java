@@ -9,7 +9,7 @@ public class Status extends Observable {
     
     private String script;
     private final StringBuilder incoming_script; //Container for incoming script chunks
-    private int font_size;
+    private float font_size;
     private float scroll_position;
     private int scroll_speed;
     public enum PrompterState {INCOMING, COMPLETE, CONNECTED, DISCONNECTED} //Enumerator to store state of prompter
@@ -18,7 +18,7 @@ public class Status extends Observable {
 
     public Status() {
         this.script = null;
-        this.font_size = 0;
+        this.font_size = 125;
         this.scroll_position = 0;
         this.scroll_speed = 3;
         this.control_clients = 0;
@@ -37,12 +37,14 @@ public class Status extends Observable {
         instance.notifyObservers();
     }
 
-    public static int getFont_size() {
+    public static float getFont_size() {
         return instance.font_size;
     }
 
-    public static void setFont_size(int font_size) {
+    public static void setFont_size(float font_size) {
         instance.font_size = font_size;
+        instance.setChanged();
+        instance.notifyObservers();
     }
 
     public static float getScroll_position() {

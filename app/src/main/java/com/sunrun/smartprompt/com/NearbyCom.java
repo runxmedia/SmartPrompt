@@ -78,6 +78,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
                         //Send script and font size;
                         sendScript(remotePrompter);
+                        sendFontSize(remotePrompter);
 
                         //Notify of new client
                         Status.setControl_clients(remotePrompters.size());
@@ -225,7 +226,6 @@ public class NearbyCom { //Handles nearby communication on both control and tele
         Nearby.getConnectionsClient(context).stopAdvertising();
     }
 
-
     public void closeAll(){
         stopAdvertising();
         stopDiscovery();
@@ -332,6 +332,11 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                         case 3:
                             Status.completeScript();
                             break;
+                        case 4:
+                            int font_bits = bytes[1] << 24 | (bytes[2] & 0xFF) << 16 |
+                                    (bytes[3] & 0xFF) << 8 | (bytes[4] & 0xFF);
+                            float fontsize = Float.intBitsToFloat(font_bits);
+                            Status.setFont_size(fontsize);
                         default:
                             //Unknown Data
                             break;
@@ -347,8 +352,13 @@ public class NearbyCom { //Handles nearby communication on both control and tele
             sendScript(prompter);
         }
     }
+    public void updateFontSize(){
+        for (RemotePrompter prompter : remotePrompters){
+            sendFontSize(prompter);
+        }
+    }
 
-    public void sendScript(RemotePrompter prompter){
+    private void sendScript(RemotePrompter prompter){
         int max_chunk_size = 3999;
         byte[] complete_script = Status.getScript().getBytes(StandardCharsets.UTF_8);
         int script_length = complete_script.length;
@@ -370,6 +380,15 @@ public class NearbyCom { //Handles nearby communication on both control and tele
         //Send end of script signal
         byte[] send_bytes = new byte[1];
         send_bytes[0] = 3;
+        Payload bytes_payload = Payload.fromBytes(send_bytes);
+        Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
+    }
+
+    private void sendFontSize(RemotePrompter prompter){
+        byte[] send_bytes = new byte[5];
+        System.arraycopy(floatToByteArray(Status.getFont_size()),
+                0,send_bytes,1,4);
+        send_bytes[0] = 4;
         Payload bytes_payload = Payload.fromBytes(send_bytes);
         Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
     }
@@ -397,9 +416,6 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                     Payload bytes_payload = Payload.fromBytes(send_bytes);
                     Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
 
-                    //Stream Payload
-//                    prompter.getOutputStream().write(send_bytes);
-//                    prompter.getOutputStream().flush();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -409,11 +425,9 @@ public class NearbyCom { //Handles nearby communication on both control and tele
     };
     public void startDataStream(){
         handler.postDelayed(outputStreamRunnable, delay);
-//        inputHandler.postDelayed(inputStreamRunnable,delay);
     }
     public void stopDataStream(){
         handler.removeCallbacks(outputStreamRunnable);
-//        inputHandler.removeCallbacks(inputStreamRunnable);
     }
 
 
