@@ -1,6 +1,7 @@
 package com.sunrun.smartprompt;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -30,6 +31,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
     TextView txt_num_clients;
     ScrollView scrl_script_scroller;
     ImageButton btn_edit_script;
+    ImageButton btn_pairing;
     ImageView btn_reverse;
     ImageView btn_forward;
     SeekBar seek_speed;
@@ -37,6 +39,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
     NearbyCom nearbyCom;
     AutoScroller autoScroller;
     int max_scroll;
+    boolean pairing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +51,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
         //Start advertising
         nearbyCom = new NearbyCom(this);
         nearbyCom.startAdvertising();
+        pairing = true;
 
         //Setup Observer
         Status.putObserver(this);
@@ -59,6 +63,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
         txt_num_clients = findViewById(R.id.txt_num_connections);
         scrl_script_scroller = findViewById(R.id.scrl_prompter_container);
         btn_edit_script = findViewById(R.id.btn_edit_script);
+        btn_pairing = findViewById(R.id.btn_pairing);
         btn_forward = findViewById(R.id.btn_forward);
         btn_reverse = findViewById(R.id.btn_reverse);
         seek_speed = findViewById(R.id.seek_speed);
@@ -118,6 +123,13 @@ public class ControlActivity extends AppCompatActivity implements Observer {
                 intent.setClass(view.getContext(), ScriptEditActivity.class);
                 intent.putExtra("script", Status.getScript());
                 startActivity(intent);
+            }
+        });
+
+        btn_pairing.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+               togglePairingMode();
             }
         });
 
@@ -196,6 +208,17 @@ public class ControlActivity extends AppCompatActivity implements Observer {
                 String client_string = clients + getResources().getString(R.string.many_prompters);
                 txt_num_clients.setText(client_string);
                 break;
+        }
+    }
+
+    private void togglePairingMode(){
+        pairing = !pairing;
+        if(pairing){
+            btn_pairing.setAlpha(1.0f);
+            nearbyCom.startAdvertising();
+        }else{
+            btn_pairing.setAlpha(0.6f);
+            nearbyCom.stopAdvertising();
         }
     }
 

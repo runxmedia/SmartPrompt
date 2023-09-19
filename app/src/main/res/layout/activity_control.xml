@@ -128,4 +128,14 @@
         app:layout_constraintTop_toBottomOf="@+id/imageView5"
         app:srcCompat="@drawable/big_a" />
 
+    <ImageButton
+        android:id="@+id/btn_pairing"
+        android:layout_width="130dp"
+        android:layout_height="100dp"
+        android:background="#00FFFFFF"
+        android:scaleType="fitCenter"
+        android:src="@drawable/pair_active"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

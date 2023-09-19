@@ -400,7 +400,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
     //Background Thread to send dataStream
     final private Handler handler = new Handler();
-    final private int delay = 7; //milliseconds
+    final private int delay = 14; //milliseconds
     byte[] send_bytes = new byte[5];
     private final Runnable outputStreamRunnable = new Runnable() {
         @Override
