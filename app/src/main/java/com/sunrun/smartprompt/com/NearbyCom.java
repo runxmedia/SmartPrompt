@@ -52,7 +52,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
     public void startAdvertising() {
 
-        remotePrompters.clear();
+//        remotePrompters.clear();
 
 
         connectionCallback = new ConnectionLifecycleCallback() {
@@ -227,6 +227,10 @@ public class NearbyCom { //Handles nearby communication on both control and tele
     public void closeAll(){
         stopAdvertising();
         stopDiscovery();
+        if(remotePrompters!=null)
+            remotePrompters.clear();
+        Nearby.getConnectionsClient(context).stopAllEndpoints();
+
         Log.d("Nearby", "ending nearby connections. Goodbye!");
     }
 
@@ -246,59 +250,58 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
         @Override
         public void onPayloadReceived(@NonNull String endpointId, Payload payload) {
-
             //Receiving Stream Payloads
-            if (payload.getType() == Payload.Type.STREAM) {
-                // Read the available bytes in a while loop to free the stream pipe in time. Otherwise, the
-                // bytes will block the pipe and slow down the throughput.
-                Thread backgroundThread =
-                        new Thread() {
-                            @Override
-                            public void run() {
-
-                                InputStream inputStream = payload.asStream().asInputStream();
-                                long lastRead = SystemClock.elapsedRealtime();
-                                int scrl_pos = 0;
-                                while (!Thread.interrupted()) {
-                                    if ((SystemClock.elapsedRealtime() - lastRead) >= READ_STREAM_IN_BG_TIMEOUT) {
-                                        Log.e("Receiver", "Read data from stream but timed out.");
-                                        break;
-                                    }
-
-                                    try {
-                                        int availableBytes = inputStream.available();
-                                        if (availableBytes > 4) {
-//                                            lastUpdate = SystemClock.elapsedRealtime();
-                                            byte[] bytes = new byte[availableBytes];
-                                            boolean all_bytes_read = inputStream.read(bytes) == availableBytes;
-                                            if (all_bytes_read) {
-                                                lastRead = SystemClock.elapsedRealtime();
-
-                                                for (int i = 0; i < availableBytes; i++){
-
-                                                    if(bytes[i] == -128 && bytes[i+1] == 0){
-                                                        scrl_pos = ((bytes[i+1] & 0xFF) << 24) |
-                                                                ((bytes[i+2] & 0xFF) << 16) |
-                                                                ((bytes[i+3] & 0xFF) << 8) |
-                                                                ((bytes[i + 4] & 0xFF));
-                                                        Status.setScroll_position(scrl_pos);
-//                                                        Status.addToQueue(scrl_pos);
-                                                        i+=4;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } catch (IOException e) {
-                                        Log.e("MyApp", "Failed to read bytes from InputStream.", e);
-                                        break;
-                                    } // try-catch
-                                } // while
-                            }
-                        };
-                backgroundThread.start();
-                backgroundThreads.put(payload.getId(), backgroundThread);
-            }
-            else if(payload.getType() == Payload.Type.BYTES){
+//            if (payload.getType() == Payload.Type.STREAM) {
+//                // Read the available bytes in a while loop to free the stream pipe in time. Otherwise, the
+//                // bytes will block the pipe and slow down the throughput.
+//                Thread backgroundThread =
+//                        new Thread() {
+//                            @Override
+//                            public void run() {
+//
+//                                InputStream inputStream = payload.asStream().asInputStream();
+//                                long lastRead = SystemClock.elapsedRealtime();
+//                                int scrl_pos = 0;
+//                                while (!Thread.interrupted()) {
+//                                    if ((SystemClock.elapsedRealtime() - lastRead) >= READ_STREAM_IN_BG_TIMEOUT) {
+//                                        Log.e("Receiver", "Read data from stream but timed out.");
+//                                        break;
+//                                    }
+//
+//                                    try {
+//                                        int availableBytes = inputStream.available();
+//                                        if (availableBytes > 4) {
+////                                            lastUpdate = SystemClock.elapsedRealtime();
+//                                            byte[] bytes = new byte[availableBytes];
+//                                            boolean all_bytes_read = inputStream.read(bytes) == availableBytes;
+//                                            if (all_bytes_read) {
+//                                                lastRead = SystemClock.elapsedRealtime();
+//
+//                                                for (int i = 0; i < availableBytes; i++){
+//
+//                                                    if(bytes[i] == -128 && bytes[i+1] == 0){
+//                                                        scrl_pos = ((bytes[i+1] & 0xFF) << 24) |
+//                                                                ((bytes[i+2] & 0xFF) << 16) |
+//                                                                ((bytes[i+3] & 0xFF) << 8) |
+//                                                                ((bytes[i + 4] & 0xFF));
+//                                                        Status.setScroll_position(scrl_pos);
+////                                                        Status.addToQueue(scrl_pos);
+//                                                        i+=4;
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
+//                                    } catch (IOException e) {
+//                                        Log.e("MyApp", "Failed to read bytes from InputStream.", e);
+//                                        break;
+//                                    } // try-catch
+//                                } // while
+//                            }
+//                        };
+//                backgroundThread.start();
+//                backgroundThreads.put(payload.getId(), backgroundThread);
+//            }
+            if(payload.getType() == Payload.Type.BYTES){
                 byte[] bytes = payload.asBytes();
 
                 /*Identify what kind of data we are receiving
@@ -400,20 +403,21 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
     //Background Thread to send dataStream
     final private Handler handler = new Handler();
-    final private int delay = 14; //milliseconds
+    final private int delay = 30; //milliseconds
     byte[] send_bytes = new byte[5];
     private final Runnable outputStreamRunnable = new Runnable() {
         @Override
         public void run() {
             try {
-                System.arraycopy(floatToByteArray(Status.getScroll_position()),
-                        0,send_bytes,1,4);
+//                System.arraycopy(floatToByteArray((float)Math.floor(System.currentTimeMillis())),0,send_bytes,1,4);
+                float scroll_pos = Status.getScroll_position();
+                System.arraycopy(floatToByteArray(scroll_pos), 0,send_bytes,1,4);
                 send_bytes[0] = 0;
+                Log.d("Time", "Thyme: " + scroll_pos);
                 for (RemotePrompter prompter : remotePrompters) {
 
                     Payload bytes_payload = Payload.fromBytes(send_bytes);
                     Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
-
                 }
             } catch (Exception e) {
                 e.printStackTrace();

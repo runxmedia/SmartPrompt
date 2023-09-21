@@ -5,6 +5,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -32,6 +34,17 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
     AutoScroller autoScroller;
     ConstraintLayout layout;
     boolean mirrored;
+    NearbyCom nearbyCom;
+
+    //Auto Disconnect handler
+    private static final long DISCONNECT_END_DELAY = 120000; // 120 seconds
+    private Handler disconnectHandler = new Handler(Looper.getMainLooper());
+    private Runnable disconnectRunnable = new Runnable() {
+        @Override
+        public void run() {
+            finish(); // Finish the activity
+        }
+    };
 
 
     @Override
@@ -47,7 +60,7 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
         img_arrow = findViewById(R.id.img_pointer_arrow);
 
         //Setup nearby connections
-        NearbyCom nearbyCom = new NearbyCom(this);
+        nearbyCom = new NearbyCom(this);
         nearbyCom.startDiscovery();
 
         //Setup Observer
@@ -112,11 +125,23 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
             img_connection_status.setAlpha(1.0f);
             Animation animation = AnimationUtils.loadAnimation(this,R.anim.delayed_fade_out);
             img_connection_status.startAnimation(animation);
+            if(disconnectHandler!=null){
+                disconnectHandler.removeCallbacks(disconnectRunnable);
+            }
         } else if (state == Status.PrompterState.DISCONNECTED){
             img_connection_status.setImageDrawable(getDrawable(R.drawable.reconnecting));
             img_connection_status.setAlpha(1.0f);
+            startDisconnectTimer();
         }
     }
+
+    // Start the disconnect timer
+    private void startDisconnectTimer() {
+        disconnectHandler.removeCallbacks(disconnectRunnable); // Remove any existing callbacks
+        disconnectHandler.postDelayed(disconnectRunnable, DISCONNECT_END_DELAY);
+    }
+
+
 
     @Override
     public boolean onKeyDown(int KeyCode, KeyEvent event) {
@@ -134,4 +159,12 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
         return false;
 
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(nearbyCom!=null)
+            nearbyCom.closeAll();
+    }
+
 }

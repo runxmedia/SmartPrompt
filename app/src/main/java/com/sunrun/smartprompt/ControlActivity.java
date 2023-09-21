@@ -5,6 +5,7 @@ import androidx.appcompat.content.res.AppCompatResources;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -170,8 +171,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
         scrl_script_scroller.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
             @Override
             public void onScrollChanged() { // Set Scroll position as percentage
-                float scrollY = scrl_script_scroller.getScrollY();
-                Status.setScroll_position(scrollY/max_scroll);
+                Status.setScroll_position((float)scrl_script_scroller.getScrollY()/(float)max_scroll);
             }
         });
     }
@@ -192,6 +192,14 @@ public class ControlActivity extends AppCompatActivity implements Observer {
                 autoScaleScript();
             }
         });
+        nearbyCom.startAdvertising();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("Pause","Pause");
+        nearbyCom.closeAll();
     }
 
     @Override
@@ -200,9 +208,15 @@ public class ControlActivity extends AppCompatActivity implements Observer {
         switch (clients){
             case 0:
                 txt_num_clients.setText(R.string.no_prompters);
+                if(!pairing){
+                    togglePairingMode();
+                }
                 break;
             case 1:
                 txt_num_clients.setText(R.string.one_prompter);
+                if(pairing){
+                    togglePairingMode();
+                }
                 break;
             default:
                 String client_string = clients + getResources().getString(R.string.many_prompters);
@@ -214,9 +228,11 @@ public class ControlActivity extends AppCompatActivity implements Observer {
     private void togglePairingMode(){
         pairing = !pairing;
         if(pairing){
+            btn_pairing.setBackgroundColor(Color.RED);
             btn_pairing.setAlpha(1.0f);
             nearbyCom.startAdvertising();
         }else{
+            btn_pairing.setBackgroundColor(Color.TRANSPARENT);
             btn_pairing.setAlpha(0.6f);
             nearbyCom.stopAdvertising();
         }

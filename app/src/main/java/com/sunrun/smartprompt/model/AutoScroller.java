@@ -9,7 +9,7 @@ public class AutoScroller {
 
     final private Handler handler = new Handler();
     final private Handler calculateMaxHandler = new Handler();
-    final private int delay = 14; //milliseconds
+    final private int delay = 30; //milliseconds
     final private int buffer_delay = 300;
     private int max_scroll;
 
@@ -41,6 +41,7 @@ public class AutoScroller {
         public void run() {
             //Convert from scroll percentage to absolute scroll
             scrollView.setScrollY((int) (Status.getScroll_position() * max_scroll));
+//            scrollView.smoothScrollTo(0,(int) (Status.getScroll_position() * max_scroll));
             handler.postDelayed(this, delay);
         }
     };
