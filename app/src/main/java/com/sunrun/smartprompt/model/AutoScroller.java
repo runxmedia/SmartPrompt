@@ -9,7 +9,8 @@ public class AutoScroller {
 
     final private Handler handler = new Handler();
     final private Handler calculateMaxHandler = new Handler();
-    final private int delay = 30; //milliseconds
+    // Reduced update frequency for better performance
+    final private int delay = 50; //milliseconds
     final private int buffer_delay = 300;
     private int max_scroll;
 

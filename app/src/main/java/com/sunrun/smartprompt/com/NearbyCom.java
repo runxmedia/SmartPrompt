@@ -400,21 +400,29 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
     //Background Thread to send dataStream
     final private Handler handler = new Handler();
-    final private int delay = 30; //milliseconds
+    // Increase delay to reduce CPU load on low-end devices
+    final private int delay = 50; //milliseconds
     byte[] send_bytes = new byte[5];
+    // Track last scroll value to avoid sending duplicate data
+    private float lastSentScroll = -1f;
     private final Runnable outputStreamRunnable = new Runnable() {
         @Override
         public void run() {
             try {
-//                System.arraycopy(floatToByteArray((float)Math.floor(System.currentTimeMillis())),0,send_bytes,1,4);
                 float scroll_pos = Status.getScroll_position();
-                System.arraycopy(floatToByteArray(scroll_pos), 0,send_bytes,1,4);
-                send_bytes[0] = 0;
-                Log.d("Time", "Thyme: " + scroll_pos);
-                for (RemotePrompter prompter : remotePrompters) {
-
+                // Only send an update if the position has changed enough
+                if (Math.abs(scroll_pos - lastSentScroll) > 0.001f) {
+                    lastSentScroll = scroll_pos;
+                    System.arraycopy(floatToByteArray(scroll_pos), 0, send_bytes, 1, 4);
+                    send_bytes[0] = 0;
                     Payload bytes_payload = Payload.fromBytes(send_bytes);
-                    Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
+                    ArrayList<String> ids = new ArrayList<>();
+                    for (RemotePrompter prompter : remotePrompters) {
+                        ids.add(prompter.getEndpointID());
+                    }
+                    if (!ids.isEmpty()) {
+                        Nearby.getConnectionsClient(context).sendPayload(ids, bytes_payload);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
