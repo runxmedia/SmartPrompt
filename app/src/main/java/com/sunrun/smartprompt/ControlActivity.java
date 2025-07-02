@@ -228,7 +228,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
     private void togglePairingMode(){
         pairing = !pairing;
         if(pairing){
-            btn_pairing.setBackgroundColor(Color.RED);
+            btn_pairing.setBackgroundColor(Color.GREEN);
             btn_pairing.setAlpha(1.0f);
             nearbyCom.startAdvertising();
         }else{

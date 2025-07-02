@@ -132,7 +132,7 @@
         android:id="@+id/btn_pairing"
         android:layout_width="130dp"
         android:layout_height="100dp"
-        android:background="#00FFFFFF"
+        android:background="@android:color/holo_green_light"
         android:scaleType="fitCenter"
         android:src="@drawable/pair_active"
         app:layout_constraintBottom_toBottomOf="parent"

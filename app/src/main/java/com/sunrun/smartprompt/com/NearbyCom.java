@@ -52,9 +52,6 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
     public void startAdvertising() {
 
-//        remotePrompters.clear();
-
-
         connectionCallback = new ConnectionLifecycleCallback() {
             @Override
             public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
