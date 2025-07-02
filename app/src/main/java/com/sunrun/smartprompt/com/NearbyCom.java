@@ -7,6 +7,7 @@ import static java.lang.Math.min;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -43,11 +44,18 @@ public class NearbyCom { //Handles nearby communication on both control and tele
     String endpoint; //Discoverer Endpoint
     ArrayList <RemotePrompter> remotePrompters;
     Context context;
+
+    // Thread for periodically sending scroll updates
+    private final HandlerThread sendThread = new HandlerThread("NearbySendThread");
+    private final Handler handler;
+
     public NearbyCom(Context context) {
        connectionCallback = null;
        payloadCallback = new ReceivePayloadCallback();
        remotePrompters = new ArrayList<>();
        this.context = context;
+       sendThread.start();
+       handler = new Handler(sendThread.getLooper());
     }
 
     public void startAdvertising() {
@@ -227,6 +235,8 @@ public class NearbyCom { //Handles nearby communication on both control and tele
         if(remotePrompters!=null)
             remotePrompters.clear();
         Nearby.getConnectionsClient(context).stopAllEndpoints();
+        handler.removeCallbacksAndMessages(null);
+        sendThread.quitSafely();
 
         Log.d("Nearby", "ending nearby connections. Goodbye!");
     }
@@ -398,8 +408,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
     }
 
 
-    //Background Thread to send dataStream
-    final private Handler handler = new Handler();
+    //Background thread handler to send data stream
     // Increase delay to reduce CPU load on low-end devices
     final private int delay = 50; //milliseconds
     byte[] send_bytes = new byte[5];
