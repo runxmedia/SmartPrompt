@@ -79,6 +79,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                             startDataStream();
                         }
                         remotePrompters.add(remotePrompter);
+                        Log.d("NearbySend", "Client connected: " + endpointId + " total=" + remotePrompters.size());
 
 
                         //Send script and font size;
@@ -113,6 +114,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                 }
                 //Notify of new client
                 Status.setControl_clients(remotePrompters.size());
+                Log.d("NearbySend", "Client disconnected: " + endpointId + " total=" + remotePrompters.size());
             }
         };
 
@@ -430,19 +432,25 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                         ids.add(prompter.getEndpointID());
                     }
                     if (!ids.isEmpty()) {
-                        Nearby.getConnectionsClient(context).sendPayload(ids, bytes_payload);
+                        Log.d("NearbySend", "Sending scroll=" + scroll_pos + " to " + ids.size() + " clients");
+                        Nearby.getConnectionsClient(context)
+                                .sendPayload(ids, bytes_payload)
+                                .addOnSuccessListener(v -> Log.d("NearbySend", "send success"))
+                                .addOnFailureListener(e -> Log.e("NearbySend", "send failed", e));
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e("NearbySend", "send error", e);
             }
             handler.postDelayed(this, delay);
         }
     };
     public void startDataStream(){
+        Log.d("NearbySend", "Starting data stream on " + sendThread.getName());
         handler.postDelayed(outputStreamRunnable, delay);
     }
     public void stopDataStream(){
+        Log.d("NearbySend", "Stopping data stream");
         handler.removeCallbacks(outputStreamRunnable);
     }
 
