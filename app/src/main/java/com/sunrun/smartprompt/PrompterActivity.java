@@ -59,15 +59,17 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
         img_connection_status = findViewById(R.id.img_connection_status);
         img_arrow = findViewById(R.id.img_pointer_arrow);
 
+        //Start Autoscroll
+        autoScroller = new AutoScroller(scrl_script_scroller);
+
         //Setup nearby connections
         nearbyCom = new NearbyCom(this);
+        nearbyCom.setAutoScroller(autoScroller);
         nearbyCom.startDiscovery();
 
         //Setup Observer
         Status.putObserver(this);
 
-        //Start Autoscroll
-        autoScroller = new AutoScroller(scrl_script_scroller);
         autoScroller.teleprompterStart();
 
     }

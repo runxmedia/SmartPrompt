@@ -12,6 +12,8 @@ public class AutoScroller {
     final private int delay = 30; //milliseconds
     final private int buffer_delay = 300;
     private int max_scroll;
+    private boolean teleAuto = false;
+    private int teleSpeed = 0;
 
     public AutoScroller(ScrollView scrollView) {
         this.scrollView = scrollView;
@@ -40,7 +42,9 @@ public class AutoScroller {
         @Override
         public void run() {
             //Convert from scroll percentage to absolute scroll
-            scrollView.setScrollY((int) (Status.getScroll_position() * max_scroll));
+            if(!teleAuto){
+                scrollView.setScrollY((int) (Status.getScroll_position() * max_scroll));
+            }
 //            scrollView.smoothScrollTo(0,(int) (Status.getScroll_position() * max_scroll));
             handler.postDelayed(this, delay);
         }
@@ -50,6 +54,43 @@ public class AutoScroller {
     }
     public void teleprompterStop(){
         handler.removeCallbacks(teleprompterRunnable);
+    }
+
+    private final Runnable teleAutoRunnable = new Runnable() {
+        @Override
+        public void run() {
+            scrollView.scrollBy(0, teleSpeed);
+            handler.postDelayed(this, delay);
+        }
+    };
+
+    public void teleAutoStart(int speed, long startTime){
+        long diff = android.os.SystemClock.elapsedRealtime() - startTime;
+        int steps = (int)(diff / delay);
+        scrollView.scrollBy(0, speed * steps);
+        teleSpeed = speed;
+        teleAuto = true;
+        handler.postDelayed(teleAutoRunnable, delay);
+    }
+
+    public void teleAutoStop(long stopTime){
+        long diff = android.os.SystemClock.elapsedRealtime() - stopTime;
+        int steps = (int)(diff / delay);
+        scrollView.scrollBy(0, teleSpeed * steps);
+        handler.removeCallbacks(teleAutoRunnable);
+        teleAuto = false;
+    }
+
+    public void teleSmoothTo(float pos){
+        scrollView.smoothScrollTo(0, (int)(pos * max_scroll));
+    }
+
+    public void teleJumpTo(float pos){
+        scrollView.setScrollY((int)(pos * max_scroll));
+    }
+
+    public boolean isTeleAutoMode(){
+        return teleAuto;
     }
 
     private final Runnable maxScrollCalcRunnable = new Runnable() {

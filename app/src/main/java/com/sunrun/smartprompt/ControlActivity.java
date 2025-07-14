@@ -41,6 +41,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
     AutoScroller autoScroller;
     int max_scroll;
     boolean pairing;
+    boolean autoScrolling;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +71,7 @@ public class ControlActivity extends AppCompatActivity implements Observer {
         seek_speed = findViewById(R.id.seek_speed);
         seek_font_size = findViewById(R.id.seek_font_size);
         autoScroller = new AutoScroller(scrl_script_scroller);
+        autoScrolling = false;
 
         //Setup speed bar
         seek_speed.setProgress(Status.getScroll_speed());
@@ -140,11 +142,16 @@ public class ControlActivity extends AppCompatActivity implements Observer {
             public boolean onTouch(View v, MotionEvent motionEvent) {
                 switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
+                        autoScrolling = true;
+                        nearbyCom.sendAutoScrollStart(Status.getScroll_speed());
                         autoScroller.controlStart();
                         Log.d("size", "satus: " + Status.getFont_size() + " seekbar: " + seek_font_size.getProgress());
                         break;
                     case MotionEvent.ACTION_UP:
                         autoScroller.controlStop();
+                        nearbyCom.sendAutoScrollStop();
+                        nearbyCom.sendScrollPosition(Status.getScroll_position());
+                        autoScrolling = false;
                         break;
                 }
                 return true;
@@ -156,11 +163,16 @@ public class ControlActivity extends AppCompatActivity implements Observer {
                 switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
                         Status.setScroll_speed(Status.getScroll_speed()*-1);
+                        autoScrolling = true;
+                        nearbyCom.sendAutoScrollStart(Status.getScroll_speed());
                         autoScroller.controlStart();
                         break;
                     case MotionEvent.ACTION_UP:
                         Status.setScroll_speed(Status.getScroll_speed()*-1);
                         autoScroller.controlStop();
+                        nearbyCom.sendAutoScrollStop();
+                        nearbyCom.sendScrollPosition(Status.getScroll_position());
+                        autoScrolling = false;
                         break;
                 }
                 return true;
@@ -172,6 +184,9 @@ public class ControlActivity extends AppCompatActivity implements Observer {
             @Override
             public void onScrollChanged() { // Set Scroll position as percentage
                 Status.setScroll_position((float)scrl_script_scroller.getScrollY()/(float)max_scroll);
+                if(!autoScrolling){
+                    nearbyCom.sendScrollPosition(Status.getScroll_position());
+                }
             }
         });
     }

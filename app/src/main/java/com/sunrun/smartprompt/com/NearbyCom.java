@@ -43,11 +43,16 @@ public class NearbyCom { //Handles nearby communication on both control and tele
     String endpoint; //Discoverer Endpoint
     ArrayList <RemotePrompter> remotePrompters;
     Context context;
+    private com.sunrun.smartprompt.model.AutoScroller autoScroller;
     public NearbyCom(Context context) {
        connectionCallback = null;
-       payloadCallback = new ReceivePayloadCallback();
+       payloadCallback = new ReceivePayloadCallback(this);
        remotePrompters = new ArrayList<>();
        this.context = context;
+    }
+
+    public void setAutoScroller(com.sunrun.smartprompt.model.AutoScroller scroller){
+        this.autoScroller = scroller;
     }
 
     public void startAdvertising() {
@@ -65,10 +70,9 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                     case ConnectionsStatusCodes.STATUS_OK:
                         // We're connected! Can now start sending and receiving data.
 
-                        //Start datastream if this is the first connected client
                         RemotePrompter remotePrompter = new RemotePrompter(endpointId);
                         if(remotePrompters.size() == 0){
-                            startDataStream();
+                            // first client connected
                         }
                         remotePrompters.add(remotePrompter);
 
@@ -93,10 +97,6 @@ public class NearbyCom { //Handles nearby communication on both control and tele
 
             @Override
             public void onDisconnected(@NonNull String endpointId) {
-                //Stop data stream if there are no connected clients
-                if(remotePrompters.size() == 1){
-                    stopDataStream();
-                }
                 for(RemotePrompter prompter : remotePrompters){
                     if(prompter.getEndpointID().equals(endpointId)){
                         remotePrompters.remove(prompter);
@@ -232,10 +232,16 @@ public class NearbyCom { //Handles nearby communication on both control and tele
     }
 
     //Stream Payload Callback Class
-    static class ReceivePayloadCallback extends PayloadCallback {
+    class ReceivePayloadCallback extends PayloadCallback {
         private final SimpleArrayMap<Long, Thread> backgroundThreads = new SimpleArrayMap<>();
+        private final NearbyCom parent;
+        private boolean waitingForFinal = false;
 
         private static final long READ_STREAM_IN_BG_TIMEOUT = 5000;
+
+        ReceivePayloadCallback(NearbyCom parent){
+            this.parent = parent;
+        }
 
         @Override
         public void onPayloadTransferUpdate(@NonNull String endpointId, PayloadTransferUpdate update) {
@@ -316,6 +322,14 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                                     (bytes[3] & 0xFF) << 8 | (bytes[4] & 0xFF);
                             float scroll_position = Float.intBitsToFloat(intBits);
                             Status.setScroll_position(scroll_position);
+                            if(parent.autoScroller!=null){
+                                if(waitingForFinal){
+                                    parent.autoScroller.teleSmoothTo(scroll_position);
+                                    waitingForFinal = false;
+                                } else if(!parent.autoScroller.isTeleAutoMode()){
+                                    parent.autoScroller.teleJumpTo(scroll_position);
+                                }
+                            }
                             break;
                         case 1:
                             String new_script = new String(bytes, StandardCharsets.UTF_8);
@@ -335,6 +349,22 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                                     (bytes[3] & 0xFF) << 8 | (bytes[4] & 0xFF);
                             float fontsize = Float.intBitsToFloat(font_bits);
                             Status.setFont_size(fontsize);
+                            break;
+                        case 5:
+                            int speed = ByteBuffer.wrap(bytes,1,4).getInt();
+                            long startTime = ByteBuffer.wrap(bytes,5,8).getLong();
+                            if(parent.autoScroller != null){
+                                parent.autoScroller.teleAutoStart(speed,startTime);
+                            }
+                            waitingForFinal = false;
+                            break;
+                        case 6:
+                            long stopTime = ByteBuffer.wrap(bytes,1,8).getLong();
+                            if(parent.autoScroller != null){
+                                parent.autoScroller.teleAutoStop(stopTime);
+                            }
+                            waitingForFinal = true;
+                            break;
                         default:
                             //Unknown Data
                             break;
@@ -391,43 +421,51 @@ public class NearbyCom { //Handles nearby communication on both control and tele
         Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
     }
 
-    public static byte[] floatToByteArray(float value) {
-        int intBits =  Float.floatToIntBits(value);
+        public static byte[] floatToByteArray(float value) {
+        int intBits = Float.floatToIntBits(value);
         return new byte[] {
                 (byte) (intBits >> 24), (byte) (intBits >> 16), (byte) (intBits >> 8), (byte) (intBits) };
     }
 
+    public static byte[] intToByteArray(int value){
+        return new byte[]{
+                (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value
+        };
+    }
 
-    //Background Thread to send dataStream
-    final private Handler handler = new Handler();
-    final private int delay = 30; //milliseconds
-    byte[] send_bytes = new byte[5];
-    private final Runnable outputStreamRunnable = new Runnable() {
-        @Override
-        public void run() {
-            try {
-//                System.arraycopy(floatToByteArray((float)Math.floor(System.currentTimeMillis())),0,send_bytes,1,4);
-                float scroll_pos = Status.getScroll_position();
-                System.arraycopy(floatToByteArray(scroll_pos), 0,send_bytes,1,4);
-                send_bytes[0] = 0;
-                Log.d("Time", "Thyme: " + scroll_pos);
-                for (RemotePrompter prompter : remotePrompters) {
+    public static byte[] longToByteArray(long value){
+        return new byte[]{
+                (byte)(value >> 56), (byte)(value >> 48), (byte)(value >> 40), (byte)(value >> 32),
+                (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value
+        };
+    }
 
-                    Payload bytes_payload = Payload.fromBytes(send_bytes);
-                    Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(),bytes_payload);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            handler.postDelayed(this, delay);
+    private void sendBytesToAll(byte[] bytes){
+        Payload payload = Payload.fromBytes(bytes);
+        for(RemotePrompter prompter : remotePrompters){
+            Nearby.getConnectionsClient(context).sendPayload(prompter.getEndpointID(), payload);
         }
-    };
-    public void startDataStream(){
-        handler.postDelayed(outputStreamRunnable, delay);
-    }
-    public void stopDataStream(){
-        handler.removeCallbacks(outputStreamRunnable);
     }
 
+    public void sendScrollPosition(float pos){
+        byte[] bytes = new byte[5];
+        System.arraycopy(floatToByteArray(pos),0,bytes,1,4);
+        bytes[0] = 0;
+        sendBytesToAll(bytes);
+    }
 
+    public void sendAutoScrollStart(int speed){
+        byte[] bytes = new byte[13];
+        bytes[0] = 5;
+        System.arraycopy(intToByteArray(speed),0,bytes,1,4);
+        System.arraycopy(longToByteArray(SystemClock.elapsedRealtime()),0,bytes,5,8);
+        sendBytesToAll(bytes);
+    }
+
+    public void sendAutoScrollStop(){
+        byte[] bytes = new byte[9];
+        bytes[0] = 6;
+        System.arraycopy(longToByteArray(SystemClock.elapsedRealtime()),0,bytes,1,8);
+        sendBytesToAll(bytes);
+    }
 }
