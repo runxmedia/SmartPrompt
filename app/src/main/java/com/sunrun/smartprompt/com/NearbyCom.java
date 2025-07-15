@@ -236,6 +236,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
         private final SimpleArrayMap<Long, Thread> backgroundThreads = new SimpleArrayMap<>();
         private final NearbyCom parent;
         private boolean waitingForFinal = false;
+        private Float pendingFinalPosition = null;
 
         private static final long READ_STREAM_IN_BG_TIMEOUT = 5000;
 
@@ -324,9 +325,16 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                             Status.setScroll_position(scroll_position);
                             if(parent.autoScroller!=null){
                                 if(waitingForFinal){
-                                    parent.autoScroller.teleSmoothTo(scroll_position);
-                                    waitingForFinal = false;
-                                } else if(!parent.autoScroller.isTeleAutoMode()){
+                                    if(parent.autoScroller.isTeleAutoMode()){
+                                        pendingFinalPosition = scroll_position;
+                                    } else {
+                                        parent.autoScroller.teleSmoothTo(scroll_position);
+                                        waitingForFinal = false;
+                                        pendingFinalPosition = null;
+                                    }
+                                } else if(parent.autoScroller.isTeleAutoMode()){
+                                    pendingFinalPosition = scroll_position;
+                                } else {
                                     parent.autoScroller.teleJumpTo(scroll_position);
                                 }
                             }
@@ -357,6 +365,7 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                                 parent.autoScroller.teleAutoStart(speed,startTime);
                             }
                             waitingForFinal = false;
+                            pendingFinalPosition = null;
                             break;
                         case 6:
                             long stopTime = ByteBuffer.wrap(bytes,1,8).getLong();
@@ -364,6 +373,11 @@ public class NearbyCom { //Handles nearby communication on both control and tele
                                 parent.autoScroller.teleAutoStop(stopTime);
                             }
                             waitingForFinal = true;
+                            if(parent.autoScroller != null && pendingFinalPosition != null){
+                                parent.autoScroller.teleSmoothTo(pendingFinalPosition);
+                                waitingForFinal = false;
+                                pendingFinalPosition = null;
+                            }
                             break;
                         default:
                             //Unknown Data
