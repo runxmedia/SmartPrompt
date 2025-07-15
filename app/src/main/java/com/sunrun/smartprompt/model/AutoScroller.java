@@ -80,6 +80,11 @@ public class AutoScroller {
         // Stop without using remote timestamp to prevent sudden jumps
         handler.removeCallbacks(teleAutoRunnable);
         teleAuto = false;
+        // Update stored scroll position so the periodic
+        // teleprompter runnable doesn't jump to an old value
+        if(max_scroll > 0){
+            Status.setScroll_position((float)scrollView.getScrollY() / (float)max_scroll);
+        }
     }
 
     public void teleSmoothTo(float pos){
