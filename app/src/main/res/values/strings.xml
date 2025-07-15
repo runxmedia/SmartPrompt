@@ -6,4 +6,5 @@
     <string name="many_prompters">\ Teleprompters Connected</string>
     <string name="telelprompter_placeholder">Connecting to Controller</string>
     <string name="incoming_script">Downloading Script</string>
+    <string name="waiting_script">Waiting for the Script</string>
 </resources>

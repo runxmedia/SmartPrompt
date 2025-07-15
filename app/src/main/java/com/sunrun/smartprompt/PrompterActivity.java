@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -31,6 +32,7 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
     ScrollView scrl_script_scroller;
     ImageView img_arrow;
     ImageView img_connection_status;
+    ConstraintLayout waitingOverlay;
     AutoScroller autoScroller;
     ConstraintLayout layout;
     boolean mirrored;
@@ -58,6 +60,7 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
         scrl_script_scroller = findViewById(R.id.scrl_prompter_container);
         img_connection_status = findViewById(R.id.img_connection_status);
         img_arrow = findViewById(R.id.img_pointer_arrow);
+        waitingOverlay = findViewById(R.id.waiting_overlay);
 
         //Start Autoscroll
         autoScroller = new AutoScroller(scrl_script_scroller);
@@ -127,6 +130,14 @@ public class PrompterActivity extends AppCompatActivity implements Observer {
             img_connection_status.setAlpha(1.0f);
             Animation animation = AnimationUtils.loadAnimation(this,R.anim.delayed_fade_out);
             img_connection_status.startAnimation(animation);
+            if(waitingOverlay.getVisibility() == View.VISIBLE){
+                waitingOverlay.animate().alpha(0f).setDuration(500).withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        waitingOverlay.setVisibility(View.GONE);
+                    }
+                }).start();
+            }
             if(disconnectHandler!=null){
                 disconnectHandler.removeCallbacks(disconnectRunnable);
             }
