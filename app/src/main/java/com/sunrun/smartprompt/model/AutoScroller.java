@@ -3,6 +3,7 @@ package com.sunrun.smartprompt.model;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.ScrollView;
+import android.util.DisplayMetrics;
 
 public class AutoScroller {
     private final ScrollView scrollView;
@@ -12,11 +13,14 @@ public class AutoScroller {
     final private int delay = 30; //milliseconds
     final private int buffer_delay = 300;
     private int max_scroll;
+    private final float density;
     private boolean teleAuto = false;
     private int teleSpeed = 0;
 
     public AutoScroller(ScrollView scrollView) {
         this.scrollView = scrollView;
+        DisplayMetrics metrics = scrollView.getResources().getDisplayMetrics();
+        this.density = metrics.density;
         calculateMax();
     }
 
@@ -24,7 +28,7 @@ public class AutoScroller {
     private final Runnable controlRunnable = new Runnable() {
         @Override
         public void run() {
-            scrollView.scrollBy(0,Status.getScroll_speed());
+            scrollView.scrollBy(0, Math.round(Status.getScroll_speed() * density));
             if (Status.getScroll_speed() != 0) {
                 handler.postDelayed(this, delay);
             }
@@ -59,24 +63,21 @@ public class AutoScroller {
     private final Runnable teleAutoRunnable = new Runnable() {
         @Override
         public void run() {
-            scrollView.scrollBy(0, teleSpeed);
+            scrollView.scrollBy(0, Math.round(teleSpeed * density));
             handler.postDelayed(this, delay);
         }
     };
 
     public void teleAutoStart(int speed, long startTime){
-        long diff = android.os.SystemClock.elapsedRealtime() - startTime;
-        int steps = (int)(diff / delay);
-        scrollView.scrollBy(0, speed * steps);
+        // Ignore remote start time to avoid jumps when device clocks differ
+        // Start scrolling from current position at provided speed
         teleSpeed = speed;
         teleAuto = true;
         handler.postDelayed(teleAutoRunnable, delay);
     }
 
     public void teleAutoStop(long stopTime){
-        long diff = android.os.SystemClock.elapsedRealtime() - stopTime;
-        int steps = (int)(diff / delay);
-        scrollView.scrollBy(0, teleSpeed * steps);
+        // Stop without using remote timestamp to prevent sudden jumps
         handler.removeCallbacks(teleAutoRunnable);
         teleAuto = false;
     }
