@@ -55,19 +55,20 @@
 
         <pl.droidsonroids.gif.GifImageView
             android:id="@+id/waiting_gif"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="150dp"
+            android:src="@drawable/walking_sun"
             app:layout_constraintBottom_toTopOf="@+id/waiting_text"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:srcCompat="@drawable/walking_sun" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/waiting_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="150dp"
             android:fontFamily="@font/roboto_medium"
             android:text="@string/waiting_script"
             android:textColor="@android:color/black"
