@@ -70,32 +70,32 @@
     <ImageView
         android:id="@+id/btn_forward"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="200dp"
-        android:layout_marginEnd="32dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="80dp"
         android:alpha=".5"
         android:background="#19DDDDDD"
+        android:src="@drawable/forward"
         app:layout_constraintBottom_toTopOf="@+id/txt_num_connections"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btn_reverse"
-        app:layout_constraintTop_toBottomOf="@+id/scrl_prompter_container"
-        app:srcCompat="@drawable/forward" />
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintStart_toEndOf="@id/btn_reverse" />
 
     <ImageView
         android:id="@+id/btn_reverse"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="200dp"
-        android:layout_marginEnd="32dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="80dp"
         android:alpha=".5"
         android:background="#19DDDDDD"
+        android:src="@drawable/backward"
         app:layout_constraintBottom_toTopOf="@+id/txt_num_connections"
         app:layout_constraintEnd_toStartOf="@+id/btn_forward"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scrl_prompter_container"
-        app:srcCompat="@drawable/backward" />
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/imageView4"
@@ -120,7 +120,8 @@
         android:id="@+id/imageView5"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_pairing"
+        app:layout_constraintStart_toEndOf="@id/seek_speed"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/rabbit" />
 
@@ -136,7 +137,8 @@
         android:id="@+id/imageView7"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_pairing"
+        app:layout_constraintStart_toEndOf="@id/seek_font_size"
         app:layout_constraintTop_toBottomOf="@+id/imageView5"
         app:srcCompat="@drawable/big_a" />
 
@@ -147,7 +149,8 @@
         android:background="@android:color/holo_green_light"
         android:scaleType="fitCenter"
         android:src="@drawable/pair_active"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/imageView7"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
